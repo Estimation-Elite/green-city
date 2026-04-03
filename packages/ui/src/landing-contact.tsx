@@ -75,17 +75,31 @@ function LandingContact({
         }
 
         try {
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000))
+            const response = await fetch("/api/lead", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            })
+            const result = await response.json()
+            if (!response.ok) {
+                throw new Error(
+                    result.error || "Envoi impossible pour le moment.",
+                )
+            }
             toast.success("Message envoy\u00e9 avec succ\u00e8s !", {
                 description:
                     "Notre \u00e9quipe vous contactera dans les plus brefs d\u00e9lais.",
             })
             ;(e.target as HTMLFormElement).reset()
-        } catch {
-            toast.error("Une erreur est survenue.", {
-                description: "Veuillez r\u00e9essayer plus tard.",
-            })
+        } catch (error) {
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Une erreur est survenue.",
+                {
+                    description: "Veuillez r\u00e9essayer plus tard.",
+                },
+            )
         } finally {
             setIsSubmitting(false)
         }

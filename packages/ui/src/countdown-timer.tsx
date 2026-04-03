@@ -71,15 +71,15 @@ function CountdownTimer({ targetDate, label, className }: CountdownTimerProps) {
             )}
             <div className="flex items-center gap-3 sm:gap-4">
                 <TimeBox value={timeLeft.days} unit="Jours" />
-                <span className="mt-[-1.25rem] text-2xl font-bold text-amber-400/60">
+                <span className="-mt-5 text-2xl font-bold text-amber-400/60">
                     :
                 </span>
                 <TimeBox value={timeLeft.hours} unit="Heures" />
-                <span className="mt-[-1.25rem] text-2xl font-bold text-amber-400/60">
+                <span className="-mt-5 text-2xl font-bold text-amber-400/60">
                     :
                 </span>
                 <TimeBox value={timeLeft.minutes} unit="Min" />
-                <span className="mt-[-1.25rem] text-2xl font-bold text-amber-400/60">
+                <span className="-mt-5 text-2xl font-bold text-amber-400/60">
                     :
                 </span>
                 <TimeBox value={timeLeft.seconds} unit="Sec" />

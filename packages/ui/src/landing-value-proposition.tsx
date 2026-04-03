@@ -70,7 +70,7 @@ function LandingValueProposition({
                             className="group rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md sm:p-8"
                         >
                             <div className="mb-4 flex items-start gap-4">
-                                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100">
                                     <CircleCheck className="size-5 text-emerald-600" />
                                 </div>
                                 <div className="flex-1">
