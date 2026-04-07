@@ -32,13 +32,13 @@ export const heroData = {
     { value: "1", label: "Min du métro" },
   ],
   countdown: {
-    targetDate: "2026-09-30",
-    label: "Lancement commercial en cours",
+    targetDate: "2027-12-31",
+    label: "Commercialisation en cours",
   },
   trustpilot: {
-    rating: 4.8,
-    reviewCount: 230,
-    label: "familles accompagnées",
+    rating: 5,
+    reviewCount: 17000,
+    label: "logements livrés par GreenCity",
   },
   primaryCta: { label: "Télécharger la brochure", href: "#contact" },
   secondaryCta: { label: "Découvrir les appartements", href: "#galerie" },
@@ -96,81 +96,81 @@ export const equipmentData = {
 };
 
 export const testimonialsData = {
-  sectionLabel: "Témoignages",
-  sectionTitle: "Ils ont choisi",
-  highlightedTitle: "Park View",
+  sectionLabel: "Nos promoteurs",
+  sectionTitle: "Portés par",
+  highlightedTitle: "l'excellence",
   subtitle:
-    "Découvrez les retours de ceux qui ont fait confiance à GreenCity et Sporting Promotion",
+    "Deux promoteurs engagés qui poursuivent leur ambition commune de concevoir des lieux de vie durables et accessibles",
   testimonials: [
     {
-      name: "Sophie M.",
-      role: "Appartement T3 - Investissement LLI",
+      name: "GreenCity Immobilier",
+      role: "4e promoteur indépendant français — 17 000+ logements livrés",
       quote:
-        "L'emplacement est idéal : le métro à 1 minute, les commerces à pied, et un quartier en pleine transformation. Un investissement que je ne regrette pas.",
+        "GreenCity Immobilier se spécialise dans l'habitat résidentiel haut de gamme avec un engagement fort sur le confort et le bien-être des résidents, la construction durable avec des matériaux décarbonés et biosourcés, et la préservation de la biodiversité.",
       rating: 5,
     },
     {
-      name: "Laurent et Anne R.",
-      role: "Appartement T4 - Résidence principale",
+      name: "Sporting Promotion",
+      role: "Opérateur global depuis 1995 — 9 000+ logements réalisés",
       quote:
-        "La terrasse de 80 m² a été déterminante dans notre choix. Avec deux enfants, c'est un vrai luxe d'avoir autant d'espace extérieur en ville.",
+        "Depuis 1995, Sporting Promotion conçoit et développe des projets immobiliers adaptés aux nouveaux modes de vie. L'expérience de vie est au cœur de chaque projet : des espaces fonctionnels et conviviaux.",
       rating: 5,
     },
     {
-      name: "Karim B.",
-      role: "Appartement T2 - TVA réduite 5,5%",
+      name: "Park View 2",
+      role: "Certification NF Habitat HQE — RE 2020 seuil 2025",
       quote:
-        "En tant que primo-accédant, la TVA à 5,5% combinée au PTZ a rendu mon projet possible. La qualité des finitions est au rendez-vous.",
+        "Park View 2 s'inscrit naturellement dans la continuité de Park View tout en affirmant sa propre identité, portée par les mêmes exigences de qualité architecturale, de performance environnementale et de responsabilité sociétale.",
       rating: 5,
     },
   ],
   stats: [
-    { value: "4,8/5", label: "Note moyenne" },
-    { value: "230+", label: "Familles accompagnées" },
-    { value: "28", label: "Pyramides FPI" },
-    { value: "17 000+", label: "Logements livrés" },
+    { value: "3", label: "Pyramides d'Or nationales" },
+    { value: "9 000+", label: "Logements Sporting Promotion" },
+    { value: "28", label: "Pyramides FPI GreenCity" },
+    { value: "17 000+", label: "Logements GreenCity" },
   ],
 };
 
 export const conversationsData = {
-  sectionTitle: "Conversations récentes",
+  sectionTitle: "Questions fréquentes",
   conversations: [
     {
-      clientName: "Nathalie D.",
-      status: "En cours de négociation",
+      clientName: "Accession à prix maîtrisé",
+      status: "TVA réduite 5,5%",
       messages: [
         {
-          sender: "Nathalie",
+          sender: "Question",
           message:
-            "Bonjour, est-ce qu'il reste des T3 éligibles à la TVA réduite à 5,5% ?",
-          time: "09:45",
+            "Comment fonctionne la TVA réduite à 5,5% sur Park View 2 ?",
+          time: "",
           isAgent: false,
         },
         {
           sender: "Park View 2",
           message:
-            "Bonjour Nathalie ! Oui, plusieurs T3 sont encore disponibles en TVA réduite. Souhaitez-vous qu'on étudie ensemble votre éligibilité et les options de financement ?",
-          time: "09:52",
+            "Certains logements Park View 2 sont éligibles à la TVA réduite à 5,5%, permettant d'acheter en dessous du prix du marché. Ce dispositif est réservé à l'occupation en résidence principale sous conditions de ressources et est cumulable avec le PTZ.",
+          time: "",
           isAgent: true,
         },
       ],
     },
     {
-      clientName: "Marc et Julie T.",
-      status: "En cours de négociation",
+      clientName: "Investissement locatif",
+      status: "Dispositif LLI",
       messages: [
         {
-          sender: "Marc",
+          sender: "Question",
           message:
-            "Nous cherchons un T4 ou T5 avec grande terrasse pour notre famille. Quelles sont les surfaces disponibles ?",
-          time: "14:10",
+            "Quels sont les avantages du dispositif LLI pour investir à Park View 2 ?",
+          time: "",
           isAgent: false,
         },
         {
           sender: "Park View 2",
           message:
-            "Bonjour Marc ! Nos T4 et T5 offrent des terrasses allant jusqu'à 80 m². Je peux vous envoyer les plans détaillés et organiser une visite du site. Quand seriez-vous disponibles ?",
-          time: "14:18",
+            "Le Logement Locatif Intermédiaire (LLI) offre deux avantages : une remise immédiate de 10% sur le prix (TVA à 10% au lieu de 20%) et une exonération de taxe foncière pendant 20 ans. L'engagement de location est de 16 ans minimum avec des loyers plafonnés.",
+          time: "",
           isAgent: true,
         },
       ],
@@ -345,7 +345,7 @@ export const contactData = {
   subtitle: "Remplissez vos informations personnelles",
   contactInfo: {
     phone: "05 82 08 26 31",
-    email: "contact@parkview2-toulouse.fr",
+    email: "contact@sporting-promotion.fr",
     officeAddress: "Quartier Empalot, 31000 Toulouse",
     whatsappUrl: "https://wa.me/33582082631",
   },
@@ -370,7 +370,7 @@ export const footerData = {
   developerName: "GreenCity Immobilier & Sporting Promotion",
   logoSrc: "/images/greencity-logo.png",
   phone: "05 82 08 26 31",
-  email: "contact@parkview2-toulouse.fr",
+  email: "contact@sporting-promotion.fr",
   address: "Quartier Empalot, 31000 Toulouse",
   legalLinks: [
     { label: "Mentions légales", href: "/mentions-legales" },

@@ -41,6 +41,7 @@ type LandingHeroProps = {
     primaryCta: HeroCta
     secondaryCta?: HeroCta
     locationBadge?: string
+    onPrimaryCtaClick?: () => void
     className?: string
 }
 
@@ -108,6 +109,7 @@ function LandingHero({
     primaryCta,
     secondaryCta,
     locationBadge,
+    onPrimaryCtaClick,
     className,
 }: LandingHeroProps) {
     return (
@@ -244,9 +246,15 @@ function LandingHero({
                     animate="visible"
                     custom={6}
                 >
-                    <Button asChild size="xl">
-                        <a href={primaryCta.href}>{primaryCta.label}</a>
-                    </Button>
+                    {onPrimaryCtaClick ? (
+                        <Button size="xl" onClick={onPrimaryCtaClick}>
+                            {primaryCta.label}
+                        </Button>
+                    ) : (
+                        <Button asChild size="xl">
+                            <a href={primaryCta.href}>{primaryCta.label}</a>
+                        </Button>
+                    )}
                     {secondaryCta && (
                         <Button
                             asChild

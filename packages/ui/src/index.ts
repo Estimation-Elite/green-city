@@ -32,3 +32,4 @@ export { LandingProjectOverview } from "./landing-project-overview";
 export { LandingLocationMap } from "./landing-location-map";
 export { LandingConnectivity } from "./landing-connectivity";
 export { LandingContact } from "./landing-contact";
+export { LeadModal } from "./lead-modal";

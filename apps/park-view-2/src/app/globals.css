@@ -1,0 +1,69 @@
+@import "tailwindcss";
+@source "../../../../packages/ui/src/**/*.{ts,tsx}";
+
+:root {
+  --background: #FAF8F5;
+  --foreground: #2D2D2D;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+
+  /* Park View 2 — palette naturelle */
+  --color-sauge: #7C8B6F;
+  --color-sauge-dark: #5F6B55;
+  --color-sauge-very-dark: #4A5443;
+  --color-sable: #D4C5A9;
+  --color-sable-light: #E8DFD0;
+  --color-blanc-casse: #FAF8F5;
+  --color-ocre: #C4953A;
+  --color-ocre-dark: #A67D2F;
+
+  /* Mappings pour compatibilité @repo/ui (Button, CookieBanner, etc.) */
+  --color-brand-blue: #5F6B55;
+  --color-brand-green: #7C8B6F;
+  --color-brand-dark: #4A5443;
+  --color-gold: #C4953A;
+  --color-blue-dark: #4A5443;
+
+  --color-primary: var(--color-sauge);
+  --color-primary-foreground: #ffffff;
+  --color-card: #ffffff;
+  --color-card-foreground: var(--foreground);
+  --color-muted-foreground: #6b7280;
+  --color-ring: var(--color-sauge);
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.5s ease-out;
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), "Inter", Arial, Helvetica, sans-serif;
+}
