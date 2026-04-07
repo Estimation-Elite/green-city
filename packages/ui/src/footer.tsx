@@ -51,7 +51,7 @@ function Footer({
                         <h3 className="text-xl font-bold">{projectName}</h3>
                         {developerName && (
                             <p className="text-sm text-white/70">
-                                Un projet d\u00e9velopp\u00e9 par{" "}
+                                Un projet développé par{" "}
                                 <span className="font-semibold text-white/90">
                                     {developerName}
                                 </span>
@@ -60,43 +60,44 @@ function Footer({
                     </div>
 
                     {/* Contact column */}
-                    <div className="space-y-4">
-                        <h4 className="text-sm font-semibold uppercase tracking-wider text-white/50">
-                            Contact
-                        </h4>
-                        <div className="space-y-3">
-                            {phone && (
-                                <a
-                                    href={`tel:${phone}`}
-                                    className="flex items-center gap-3 text-sm text-white/80 transition-colors hover:text-white"
-                                >
-                                    <Phone className="size-4 flex-shrink-0" />
-                                    <span>{phone}</span>
-                                </a>
-                            )}
-                            {email && (
-                                <a
-                                    href={`mailto:${email}`}
-                                    className="flex items-center gap-3 text-sm text-white/80 transition-colors hover:text-white"
-                                >
-                                    <Mail className="size-4 flex-shrink-0" />
-                                    <span>{email}</span>
-                                </a>
-                            )}
-                            {address && (
-                                <div className="flex items-start gap-3 text-sm text-white/80">
-                                    <MapPin className="mt-0.5 size-4 flex-shrink-0" />
-                                    <span>{address}</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    {phone || email || address ? (
+                        <div className="space-y-4">
+                            <h4 className="text-sm font-semibold uppercase tracking-wider text-white/50">
+                                Contact
+                            </h4>
+                            <div className="space-y-3">
+                                {phone && (
+                                    <a
+                                        href={`tel:${phone}`}
+                                        className="flex items-center gap-3 text-sm text-white/80 transition-colors hover:text-white"
+                                    >
+                                        <Phone className="size-4 flex-shrink-0" />
+                                        <span>{phone}</span>
+                                    </a>
+                                )}
+                                {email && (
+                                    <a
+                                        href={`mailto:${email}`}
+                                        className="flex items-center gap-3 text-sm text-white/80 transition-colors hover:text-white"
+                                    >
+                                        <Mail className="size-4 flex-shrink-0" />
+                                        <span>{email}</span>
+                                    </a>
+                                )}
+                                {address && (
+                                    <div className="flex items-start gap-3 text-sm text-white/80">
+                                        <MapPin className="mt-0.5 size-4 flex-shrink-0" />
+                                        <span>{address}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>) : null}
 
                     {/* Legal links column */}
                     {legalLinks.length > 0 && (
                         <div className="space-y-4">
                             <h4 className="text-sm font-semibold uppercase tracking-wider text-white/50">
-                                Informations l\u00e9gales
+                                Informations légales
                             </h4>
                             <div className="space-y-2">
                                 {legalLinks.map((link) => (
@@ -135,7 +136,7 @@ function Footer({
                     <p className="text-xs text-white/50">
                         &copy; {currentYear} {projectName}
                         {developerName ? ` - ${developerName}` : ""}. Tous droits
-                        r\u00e9serv\u00e9s.
+                        réservés.
                     </p>
 
                     <p className="text-xs text-white/40">

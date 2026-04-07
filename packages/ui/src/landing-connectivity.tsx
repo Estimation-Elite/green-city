@@ -26,9 +26,9 @@ type LandingConnectivityProps = {
 const TRANSPORT_ICONS = [Bus, Car, ShoppingBag]
 
 function LandingConnectivity({
-    sectionTitle = "Connectivit\u00e9",
+    sectionTitle = "Connectivité",
     transportOptions,
-    ctaTitle = "Saisissez l\u2019opportunit\u00e9",
+    ctaTitle = "Saisissez l'opportunité",
     ctaSubtitle,
     partnerLogoSrc,
     financingOptions = [],

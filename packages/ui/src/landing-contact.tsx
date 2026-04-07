@@ -50,10 +50,10 @@ function LandingContact({
     contactInfo,
     pricingInfo,
     situationOptions = [
-        { value: "salarie", label: "Salari\u00e9(e)" },
-        { value: "independant", label: "Ind\u00e9pendant(e)" },
+        { value: "salarie", label: "Salarié(e)" },
+        { value: "independant", label: "Indépendant(e)" },
         { value: "fonctionnaire", label: "Fonctionnaire" },
-        { value: "retraite", label: "Retrait\u00e9(e)" },
+        { value: "retraite", label: "Retraité(e)" },
         { value: "autre", label: "Autre" },
     ],
     className,
@@ -86,18 +86,18 @@ function LandingContact({
                     result.error || "Envoi impossible pour le moment.",
                 )
             }
-            toast.success("Message envoy\u00e9 avec succ\u00e8s !", {
+            toast.success("Message envoyé avec succès !", {
                 description:
-                    "Notre \u00e9quipe vous contactera dans les plus brefs d\u00e9lais.",
+                    "Notre équipe vous contactera dans les plus brefs délais.",
             })
-            ;(e.target as HTMLFormElement).reset()
+                ; (e.target as HTMLFormElement).reset()
         } catch (error) {
             toast.error(
                 error instanceof Error
                     ? error.message
                     : "Une erreur est survenue.",
                 {
-                    description: "Veuillez r\u00e9essayer plus tard.",
+                    description: "Veuillez réessayer plus tard.",
                 },
             )
         } finally {
@@ -131,12 +131,12 @@ function LandingContact({
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div className="space-y-2">
                                     <Label htmlFor="prenom">
-                                        Pr\u00e9nom <span className="text-red-500">*</span>
+                                        Prénom <span className="text-red-500">*</span>
                                     </Label>
                                     <Input
                                         id="prenom"
                                         name="prenom"
-                                        placeholder="Votre pr\u00e9nom"
+                                        placeholder="Votre prénom"
                                         required
                                     />
                                 </div>
@@ -170,7 +170,7 @@ function LandingContact({
                             {/* Phone */}
                             <div className="space-y-2">
                                 <Label htmlFor="telephone">
-                                    T\u00e9l\u00e9phone <span className="text-red-500">*</span>
+                                    Téléphone <span className="text-red-500">*</span>
                                 </Label>
                                 <Input
                                     id="telephone"
@@ -189,7 +189,7 @@ function LandingContact({
                                     name="situation"
                                     className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
-                                    <option value="">S\u00e9lectionnez votre situation</option>
+                                    <option value="">Sélectionnez votre situation</option>
                                     {situationOptions.map((opt) => (
                                         <option key={opt.value} value={opt.value}>
                                             {opt.label}
@@ -204,7 +204,7 @@ function LandingContact({
                                 <Textarea
                                     id="message"
                                     name="message"
-                                    placeholder="D\u00e9crivez votre projet ou posez vos questions..."
+                                    placeholder="Décrivez votre projet ou posez vos questions..."
                                     rows={4}
                                 />
                             </div>
@@ -222,9 +222,9 @@ function LandingContact({
                                     htmlFor="consent"
                                     className="text-xs leading-relaxed text-gray-500"
                                 >
-                                    J&apos;accepte que mes donn\u00e9es soient trait\u00e9es dans le
+                                    J&apos;accepte que mes données soient traitées dans le
                                     cadre de ma demande de contact. Consultez notre politique de
-                                    confidentialit\u00e9 pour en savoir plus.
+                                    confidentialité pour en savoir plus.
                                 </Label>
                             </div>
 
@@ -265,7 +265,7 @@ function LandingContact({
                                     </div>
                                     <div>
                                         <p className="text-xs font-medium text-gray-500">
-                                            T\u00e9l\u00e9phone
+                                            Téléphone
                                         </p>
                                         <p className="text-sm font-semibold text-gray-900">
                                             {contactInfo.phone}
@@ -343,7 +343,7 @@ function LandingContact({
                                     {pricingInfo.startingPrice && (
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm text-gray-600">
-                                                \u00c0 partir de
+                                                à partir de
                                             </span>
                                             <span className="text-lg font-extrabold text-brand-primary">
                                                 {pricingInfo.startingPrice}
@@ -353,7 +353,7 @@ function LandingContact({
                                     {pricingInfo.monthlyPayment && (
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm text-gray-600">
-                                                Mensualit\u00e9 \u00e0 partir de
+                                                Mensualité à partir de
                                             </span>
                                             <span className="text-base font-bold text-gray-900">
                                                 {pricingInfo.monthlyPayment}
@@ -373,11 +373,11 @@ function LandingContact({
                                 Programmez votre visite
                             </h3>
                             <p className="mb-4 text-sm text-gray-500">
-                                D\u00e9couvrez le projet sur place avec nos conseillers
+                                Découvrez le projet sur place avec nos conseillers
                             </p>
                             <Button variant="primary" size="default" className="w-full">
                                 <Home className="size-4" />
-                                R\u00e9server une visite
+                                Réserver une visite
                             </Button>
                         </div>
                     </div>

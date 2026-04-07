@@ -59,7 +59,7 @@ const BG_COLOR_MAP: string[] = [
 ]
 
 function LandingProximity({
-    sectionTitle = "Tout \u00e0 proximit\u00e9",
+    sectionTitle = "Tout à proximité",
     items,
     className,
 }: LandingProximityProps) {
