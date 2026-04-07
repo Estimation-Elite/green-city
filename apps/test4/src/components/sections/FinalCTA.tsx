@@ -38,13 +38,13 @@ export function FinalCTA() {
             </div>
 
             {/* Bouton call-to-call mobile */}
-            <a
+            {/* <a
               href="tel:+33500000000"
               className="inline-flex items-center gap-3 bg-accent hover:bg-accent-dark text-white font-semibold px-6 py-4 rounded-xl transition text-lg mt-4"
             >
               <Phone className="w-5 h-5" />
               Appelez-nous maintenant
-            </a>
+            </a> */}
           </div>
 
           {/* Formulaire complet */}
