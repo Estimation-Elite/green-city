@@ -5,6 +5,7 @@ import { Advantages } from "@/components/sections/Advantages";
 import { Program } from "@/components/sections/Program";
 import { Habiter } from "@/components/sections/Habiter";
 import { Investir } from "@/components/sections/Investir";
+import { PhotoGallery } from "@/components/sections/PhotoGallery";
 import { Reassurance } from "@/components/sections/Reassurance";
 import { LocationMap } from "@/components/sections/LocationMap";
 import { FinalCTA } from "@/components/sections/FinalCTA";
@@ -26,6 +27,9 @@ export default function Home() {
         </section>
         <section id="investir">
           <Investir />
+        </section>
+        <section id="galerie">
+          <PhotoGallery />
         </section>
         <section id="reassurance">
           <Reassurance />

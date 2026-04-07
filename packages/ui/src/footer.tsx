@@ -11,6 +11,8 @@ type FooterProps = {
     projectName: string
     developerName?: string
     logoSrc?: string
+    partnerLogoSrc?: string
+    partnerLogoAlt?: string
     phone?: string
     email?: string
     address?: string
@@ -22,6 +24,8 @@ function Footer({
     projectName,
     developerName,
     logoSrc,
+    partnerLogoSrc,
+    partnerLogoAlt = "Partenaire",
     phone,
     email,
     address,
@@ -41,12 +45,26 @@ function Footer({
                 <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">
                     {/* Brand column */}
                     <div className="space-y-4">
-                        {logoSrc && (
-                            <img
-                                src={logoSrc}
-                                alt={projectName}
-                                className="h-10 w-auto brightness-0 invert"
-                            />
+                        {(logoSrc || partnerLogoSrc) && (
+                            <div className="flex items-center gap-4">
+                                {logoSrc && (
+                                    <img
+                                        src={logoSrc}
+                                        alt={projectName}
+                                        className="h-10 w-auto"
+                                    />
+                                )}
+                                {logoSrc && partnerLogoSrc && (
+                                    <span className="h-8 w-px bg-white/30" />
+                                )}
+                                {partnerLogoSrc && (
+                                    <img
+                                        src={partnerLogoSrc}
+                                        alt={partnerLogoAlt}
+                                        className="h-10 w-auto"
+                                    />
+                                )}
+                            </div>
                         )}
                         <h3 className="text-xl font-bold">{projectName}</h3>
                         {developerName && (

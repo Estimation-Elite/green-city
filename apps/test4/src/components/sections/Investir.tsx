@@ -55,6 +55,15 @@ export function Investir() {
             </div>
           ))}
         </div>
+
+        <div className="flex flex-wrap gap-4">
+          <a
+            href="#contact"
+            className="bg-accent text-white font-semibold px-6 py-3 rounded-lg hover:bg-accent-dark transition"
+          >
+            Télécharger la brochure
+          </a>
+        </div>
       </div>
     </div>
   );
