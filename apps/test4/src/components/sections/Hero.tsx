@@ -1,5 +1,8 @@
 import Image from "next/image";
 import { LeadForm } from "@/components/ui/LeadForm";
+import { LiveViewerCount } from "@/components/ui/LiveViewerCount";
+import { LotsAvailableBadge } from "@/components/ui/LotsAvailableBadge";
+import { socialProofData } from "@/data/home-spirit";
 
 export function Hero() {
   return (
@@ -19,9 +22,12 @@ export function Hero() {
         <div className="flex flex-col lg:flex-row items-center gap-12">
           {/* Texte */}
           <div className="flex-1 text-white space-y-6">
-            <span className="inline-block bg-accent text-white text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
-              Toulouse Aerospace — Montaudran
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-block bg-accent text-white text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
+                Toulouse Aerospace — Montaudran
+              </span>
+              <LotsAvailableBadge count={socialProofData.lotsAvailable} variant="accent" />
+            </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
               Home Spirit 2 :<br />
               votre résidence lumineuse à{" "}
@@ -48,6 +54,8 @@ export function Hero() {
                 </div>
               ))}
             </div>
+
+            <LiveViewerCount variant="dark" />
 
             {/* Boutons de segmentation */}
             <div className="flex flex-wrap gap-4 pt-4">

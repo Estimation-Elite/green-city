@@ -77,6 +77,11 @@ export const photoGalleryData = {
   ],
 };
 
+export const socialProofData = {
+  lotsAvailable: 23,
+  totalLots: 79,
+};
+
 export const footerData = {
   projectName: "Home Spirit 2",
   developerName: "Sporting Promotion & GreenCity Immobilier",

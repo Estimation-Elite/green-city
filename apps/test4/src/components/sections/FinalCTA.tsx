@@ -1,5 +1,8 @@
-import { Phone, Clock, Shield } from "lucide-react";
+import { Clock, Shield } from "lucide-react";
 import { LeadForm } from "@/components/ui/LeadForm";
+import { LiveViewerCount } from "@/components/ui/LiveViewerCount";
+import { LotsAvailableBadge } from "@/components/ui/LotsAvailableBadge";
+import { socialProofData } from "@/data/home-spirit";
 
 export function FinalCTA() {
   return (
@@ -8,9 +11,7 @@ export function FinalCTA() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-14">
           {/* Argumentaire */}
           <div className="space-y-6">
-            <span className="inline-block bg-accent/20 text-accent text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
-              Nombre de lots limité
-            </span>
+            <LotsAvailableBadge count={socialProofData.lotsAvailable} variant="accent" />
             <h2 className="text-3xl md:text-4xl font-bold leading-tight">
               Concrétisez votre projet{" "}
               <span className="text-accent">immobilier</span>
@@ -49,6 +50,7 @@ export function FinalCTA() {
 
           {/* Formulaire complet */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+            <LiveViewerCount variant="dark" className="mb-4" />
             <h3 className="text-xl font-bold mb-1">
               Contactez-nous dès maintenant
             </h3>
