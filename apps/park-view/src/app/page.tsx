@@ -1,17 +1,14 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/sections/Hero";
-import { ValueProposition } from "@/components/sections/ValueProposition";
-import { Equipment } from "@/components/sections/Equipment";
-import { Testimonials } from "@/components/sections/Testimonials";
-import { Conversations } from "@/components/sections/Conversations";
-import { VirtualTour } from "@/components/sections/VirtualTour";
+import { Advantages } from "@/components/sections/Advantages";
+import { Program } from "@/components/sections/Program";
+import { Habiter } from "@/components/sections/Habiter";
+import { Investir } from "@/components/sections/Investir";
 import { PhotoGallery } from "@/components/sections/PhotoGallery";
-import { Proximity } from "@/components/sections/Proximity";
-import { ProjectOverview } from "@/components/sections/ProjectOverview";
+import { Reassurance } from "@/components/sections/Reassurance";
 import { LocationMap } from "@/components/sections/LocationMap";
-import { Connectivity } from "@/components/sections/Connectivity";
-import { Contact } from "@/components/sections/Contact";
+import { FinalCTA } from "@/components/sections/FinalCTA";
 
 export default function Home() {
   return (
@@ -19,24 +16,29 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
-        <section id="value-proposition">
-          <ValueProposition />
+        <section id="avantages">
+          <Advantages />
         </section>
-        <Equipment />
-        <Testimonials />
-        <Conversations />
-        <VirtualTour />
+        <section id="programme">
+          <Program />
+        </section>
+        <section id="habiter">
+          <Habiter />
+        </section>
+        {/* <section id="investir">
+          <Investir />
+        </section> */}
         <section id="galerie">
           <PhotoGallery />
         </section>
-        <Proximity />
-        <ProjectOverview />
+        <section id="reassurance">
+          <Reassurance />
+        </section>
         <section id="localisation">
           <LocationMap />
         </section>
-        <Connectivity />
         <section id="contact">
-          <Contact />
+          <FinalCTA />
         </section>
       </main>
       <Footer />

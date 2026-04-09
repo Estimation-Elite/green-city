@@ -14,14 +14,14 @@ Deploy the app `$ARGUMENTS` to the green-city IONOS VPS server.
 
 All apps are deployed to the same server.
 
-| App          | Host           | Remote directory    |
-| ------------ | -------------- | ------------------- |
-| l-archipel   | 217.160.246.17 | /opt/l-archipel     |
-| park-view    | 217.160.246.17 | /opt/park-view      |
-| park-view-2  | 217.160.246.17 | /opt/park-view-2    |
-| revelation   | 217.160.246.17 | /opt/revelation     |
-| roof-garden  | 217.160.246.17 | /opt/roof-garden    |
-| test4        | 217.160.246.17 | /opt/test4          |
+| App             | Host           | Remote directory     |
+| --------------- | -------------- | -------------------- |
+| l-archipel      | 217.160.246.17 | /opt/l-archipel      |
+| park-view-old   | 217.160.246.17 | /opt/park-view-OLD   |
+| park-view-2-old | 217.160.246.17 | /opt/park-view-2-OLD |
+| revelation      | 217.160.246.17 | /opt/revelation      |
+| roof-garden     | 217.160.246.17 | /opt/roof-garden     |
+| park-view       | 217.160.246.17 | /opt/park-view       |
 
 ## Credentials
 

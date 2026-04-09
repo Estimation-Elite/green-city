@@ -1,37 +1,28 @@
 import type { Metadata } from "next";
-import { Lexend } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-const lexend = Lexend({
-  subsets: ["latin"],
-  variable: "--font-lexend",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
-  title: "Park View 2 Toulouse | Appartements neufs à Empalot",
+  title: "Home Spirit 2 | Appartements neufs à Toulouse Montaudran – Aerospace",
   description:
-    "Découvrez Park View 2, programme immobilier neuf à Toulouse Empalot. 74 appartements T2 à T5 avec terrasses jusqu'à 80 m². Certification NF Habitat HQE.",
+    "Découvrez Home Spirit 2, programme immobilier neuf à Toulouse Aerospace Montaudran. 79 appartements du T2 au T5 avec balcon ou terrasse, certifiés NF Habitat HQE, à deux pas du métro Aerospace Campus.",
   openGraph: {
-    title: "Park View 2 Toulouse | Appartements neufs à Empalot",
+    title: "Home Spirit 2 | Appartements neufs à Toulouse Montaudran",
     description:
-      "Programme immobilier neuf à Toulouse Empalot. 74 appartements T2 à T5, certifiés NF Habitat HQE. Métro à 1 min.",
+      "79 appartements lumineux du T2 au T5 au cœur du quartier Aerospace Montaudran. Architecture contemporaine, balcons arrondis, certification NF Habitat HQE.",
     type: "website",
   },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="fr">
-      <body className={`${lexend.variable} font-sans antialiased`}>
-        <div className="min-h-screen bg-white flex flex-col">
-          {children}
-        </div>
+      <body className="antialiased">
+        <div className="min-h-screen bg-white flex flex-col">{children}</div>
         <Toaster />
       </body>
     </html>
