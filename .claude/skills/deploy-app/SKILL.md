@@ -22,6 +22,7 @@ All apps are deployed to the same server.
 | revelation      | 217.160.246.17 | /opt/revelation      |
 | roof-garden     | 217.160.246.17 | /opt/roof-garden     |
 | park-view       | 217.160.246.17 | /opt/park-view       |
+| home-spirit-2   | 217.160.246.17 | /opt/home-spirit-2   |
 
 ## Credentials
 
