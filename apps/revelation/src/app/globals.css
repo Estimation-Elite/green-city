@@ -1,0 +1,76 @@
+@import "tailwindcss";
+@source "../../../../packages/ui/src/**/*.{ts,tsx}";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1a1a2e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* Révélation — bleu #C9DBDB & jaune #B99A65 */
+  --color-primary: #3D6B6B;
+  --color-brand-primary: #3D6B6B;
+  --color-brand-accent: #B99A65;
+  --color-primary-dark: #2E5252;
+  --color-primary-light: #C9DBDB;
+  --color-accent: #B99A65;
+  --color-accent-dark: #9F8352;
+  --color-success: #10b981;
+  --color-dark: #2E5252;
+  --color-muted: #64748b;
+  --color-light: #f5f3ef;
+  --color-card: #ffffff;
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.6s ease-out;
+  --animate-fade-in-up: fade-in-up 0.6s ease-out forwards;
+  --animate-slide-in-right: slide-in-right 0.5s ease-out forwards;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(24px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+html {
+  scroll-behavior: smooth;
+}
