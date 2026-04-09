@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { trackLeadSubmitted } from "@repo/core/analytics/trackLeadSubmitted";
+import { trackBrochureDownloaded } from "@repo/core/analytics/trackBrochureDownloaded";
 
 const PDF_URL = "/documents/HomeSpirit2-Brochure.pdf";
 
@@ -11,6 +13,7 @@ function triggerPdfDownload() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  trackBrochureDownloaded();
 }
 
 interface LeadFormProps {
@@ -39,6 +42,10 @@ export function LeadForm({
       });
 
       if (res.ok) {
+        const result = await res.json();
+        if (result.leadId) {
+          trackLeadSubmitted(result.leadId);
+        }
         setStatus("success");
         setForm({ nom: "", telephone: "", email: "" });
       } else {

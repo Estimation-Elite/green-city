@@ -16,6 +16,7 @@ import { Label } from "./label"
 import { Textarea } from "./textarea"
 import { Button } from "./button"
 import { toast } from "sonner"
+import { trackLeadSubmitted } from "@repo/core/analytics/trackLeadSubmitted"
 
 type ContactInfo = {
     phone?: string
@@ -85,6 +86,9 @@ function LandingContact({
                 throw new Error(
                     result.error || "Envoi impossible pour le moment.",
                 )
+            }
+            if (result.leadId) {
+                trackLeadSubmitted(result.leadId)
             }
             toast.success("Message envoyé avec succès !", {
                 description:

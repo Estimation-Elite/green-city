@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
+import { GTM } from "@repo/core/analytics/GTM";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,14 +15,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const gtmId = process.env.GTM_ID;
+
   return (
     <html lang="fr">
       <body className="antialiased">
+        <GTM gtmId={gtmId} />
         <div className="min-h-screen bg-white flex flex-col">{children}</div>
         <Toaster />
       </body>

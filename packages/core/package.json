@@ -11,6 +11,26 @@
     "./api-routes": {
       "types": "./src/api-routes.ts",
       "default": "./src/api-routes.ts"
+    },
+    "./analytics/GTM": {
+      "types": "./src/analytics/gtm/GTM.tsx",
+      "default": "./src/analytics/gtm/GTM.tsx"
+    },
+    "./analytics/gtmMiddleware": {
+      "types": "./src/analytics/gtm/middleware.ts",
+      "default": "./src/analytics/gtm/middleware.ts"
+    },
+    "./analytics/dataLayer": {
+      "types": "./src/analytics/dataLayer.ts",
+      "default": "./src/analytics/dataLayer.ts"
+    },
+    "./analytics/trackLeadSubmitted": {
+      "types": "./src/analytics/trackLeadSubmitted.ts",
+      "default": "./src/analytics/trackLeadSubmitted.ts"
+    },
+    "./analytics/trackBrochureDownloaded": {
+      "types": "./src/analytics/trackBrochureDownloaded.ts",
+      "default": "./src/analytics/trackBrochureDownloaded.ts"
     }
   },
   "dependencies": {

@@ -8,6 +8,7 @@ import { Button } from "./button"
 import { Input } from "./input"
 import { Label } from "./label"
 import { toast } from "sonner"
+import { trackLeadSubmitted } from "@repo/core/analytics/trackLeadSubmitted"
 
 type SituationOption = {
     value: string
@@ -55,6 +56,9 @@ function LeadModal({
                 throw new Error(
                     result.error || "Envoi impossible pour le moment.",
                 )
+            }
+            if (result.leadId) {
+                trackLeadSubmitted(result.leadId)
             }
             toast.success("Demande envoyée avec succès !", {
                 description:
