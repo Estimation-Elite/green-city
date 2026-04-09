@@ -2,6 +2,17 @@
 
 import { useState } from "react";
 
+const PDF_URL = "/documents/HomeSpirit2-Brochure.pdf";
+
+function triggerPdfDownload() {
+  const link = document.createElement("a");
+  link.href = PDF_URL;
+  link.download = "HomeSpirit2-Brochure.pdf";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 interface LeadFormProps {
   variant?: "light" | "dark";
   buttonLabel?: string;
@@ -48,8 +59,14 @@ export function LeadForm({
     return (
       <div className={`rounded-xl p-6 text-center ${isDark ? "bg-white/10" : "bg-green-50"} ${className}`}>
         <p className={`text-lg font-semibold ${isDark ? "text-white" : "text-green-700"}`}>
-          Merci ! Nous vous recontactons très vite.
+          Merci ! Un conseiller vous recontacte sous 24h.
         </p>
+        <button
+          onClick={triggerPdfDownload}
+          className={`mt-4 w-full bg-accent hover:bg-accent-dark text-white font-semibold px-6 py-3 rounded-lg transition cursor-pointer`}
+        >
+          Télécharger la brochure
+        </button>
       </div>
     );
   }

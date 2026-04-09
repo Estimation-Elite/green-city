@@ -12,7 +12,7 @@ export const headerData = {
   navLinks: [
     { label: "Programme", href: "#programme" },
     { label: "Habiter", href: "#habiter" },
-    { label: "Investir", href: "#investir" },
+    // { label: "Investir", href: "#investir" },
     { label: "Localisation", href: "#localisation" },
     { label: "Contact", href: "#contact" },
   ],

@@ -25,9 +25,9 @@ export default function Home() {
         <section id="habiter">
           <Habiter />
         </section>
-        <section id="investir">
+        {/* <section id="investir">
           <Investir />
-        </section>
+        </section> */}
         <section id="galerie">
           <PhotoGallery />
         </section>

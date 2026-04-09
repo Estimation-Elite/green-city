@@ -24,10 +24,10 @@ function getSiteFromRequest(request: NextRequest): string | undefined {
 export async function leadHandler(request: NextRequest) {
   try {
     const body: LeadPayload = await request.json();
-    const { nom, prenom, email, telephone, situation, message, utmSource } =
+    const { nom, email, telephone, situation, message, utmSource } =
       body;
 
-    if (!nom || !prenom || !email || !telephone) {
+    if (!nom || !email || !telephone) {
       return NextResponse.json(
         { error: "Tous les champs requis ne sont pas renseignés." },
         { status: 400 },
@@ -39,7 +39,7 @@ export async function leadHandler(request: NextRequest) {
     const fields = buildLeadFields(
       {
         leadId,
-        name: `${prenom} ${nom}`.trim(),
+        name: `${nom}`.trim(),
         email,
         phone: telephone,
         situation,
