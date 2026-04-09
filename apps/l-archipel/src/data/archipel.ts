@@ -7,6 +7,8 @@ export const siteConfig = {
 export const headerData = {
   projectLogoSrc: "/images/greencity-logo.png",
   projectLogoAlt: "GreenCity Immobilier",
+  partnerLogoSrc: "/images/sporting_promotion-logo.svg",
+  partnerLogoAlt: "Sporting Promotion",
   navLinks: [
     { label: "Programme", href: "#programme" },
     { label: "Habiter", href: "#habiter" },
@@ -81,9 +83,11 @@ export const socialProofData = {
 
 export const footerData = {
   projectName: "L'Archipel",
-  developerName: "GreenCity Immobilier",
+  developerName: "Sporting Promotion & GreenCity Immobilier",
   logoSrc: "/images/greencity-logo.png",
-  phone: "0 805 258 805",
+  partnerLogoSrc: "/images/sporting_promotion-logo.svg",
+  partnerLogoAlt: "Sporting Promotion",
+  // phone: "0 805 258 805",
   email: "",
-  address: "178 Rue Edmond Rostand, 31200 Toulouse",
+  // address: "178 Rue Edmond Rostand, 31200 Toulouse",
 };
