@@ -85,7 +85,7 @@ export const socialProofData = {
 export const footerData = {
   projectName: "Home Spirit 2",
   developerName: "Sporting Promotion & GreenCity Immobilier",
-  logoSrc: "/images/greencity-logo.png",
+  logoSrc: "/images/greencity-logo-footer.png",
   partnerLogoSrc: "/images/sporting_promotion-logo.svg",
   partnerLogoAlt: "Sporting Promotion",
   phone: "",

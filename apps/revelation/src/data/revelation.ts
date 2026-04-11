@@ -90,7 +90,7 @@ export const availableLots = 39;
 export const footerData = {
   projectName: "Révélation",
   developerName: "GreenCity Immobilier & Promomidi",
-  logoSrc: "/images/greencity-logo.png",
+  logoSrc: "/images/greencity-logo-footer.png",
   partnerLogoSrc: "/images/promoMidi-logo-blanc.png",
   partnerLogoAlt: "Promomidi",
   phone: "",
