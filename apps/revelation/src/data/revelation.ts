@@ -7,7 +7,7 @@ export const siteConfig = {
 export const headerData = {
   projectLogoSrc: "/images/greencity-logo.png",
   projectLogoAlt: "GreenCity Immobilier",
-  partnerLogoSrc: "/images/promoMidi-logo-blanc.png",
+  partnerLogoSrc: "/images/promoMidi-logo-noir.png",
   partnerLogoAlt: "Promomidi",
   navLinks: [
     { label: "Programme", href: "#programme" },
@@ -91,7 +91,7 @@ export const footerData = {
   projectName: "Révélation",
   developerName: "GreenCity Immobilier & Promomidi",
   logoSrc: "/images/greencity-logo-footer.png",
-  partnerLogoSrc: "/images/promoMidi-logo-blanc.png",
+  partnerLogoSrc: "/images/promoMidi-logo-noir.png",
   partnerLogoAlt: "Promomidi",
   phone: "",
   email: "",
