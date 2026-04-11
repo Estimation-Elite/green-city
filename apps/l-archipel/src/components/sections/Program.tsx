@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { Check } from "lucide-react";
-import { LiveViewerCount } from "@/components/ui/LiveViewerCount";
 
 const features = [
   "Terrasse en bois pour chaque logement",
@@ -25,9 +24,6 @@ export function Program() {
             Deux bâtiments aux façades claires et charpente bois,
             organisés autour d&apos;un jardin central paysagé.
           </p>
-          <div className="flex justify-center mt-6">
-            <LiveViewerCount variant="light" />
-          </div>
         </div>
 
         {/* Description + images */}

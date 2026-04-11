@@ -1,10 +1,17 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
+import { Phone } from "lucide-react";
+import { CallbackFormModal } from "@repo/ui";
 import { LeadForm } from "@/components/ui/LeadForm";
 import { LiveViewerCount } from "@/components/ui/LiveViewerCount";
 import { LotsAvailableBadge } from "@/components/ui/LotsAvailableBadge";
 import { socialProofData } from "@/data/home-spirit";
 
 export function Hero() {
+  const [callbackOpen, setCallbackOpen] = useState(false);
+
   return (
     <div className="relative min-h-screen flex items-center pt-16">
       {/* Background image */}
@@ -65,12 +72,13 @@ export function Hero() {
               >
                 Je veux habiter
               </a>
-              {/* <a
-                href="#investir"
-                className="border-2 border-white text-white font-semibold px-6 py-3 rounded-lg hover:bg-white/10 transition"
+              <button
+                onClick={() => setCallbackOpen(true)}
+                className="inline-flex items-center gap-2 border-2 border-white text-white font-semibold px-6 py-3 rounded-lg hover:bg-white/10 transition cursor-pointer"
               >
-                Je veux investir
-              </a> */}
+                <Phone className="w-4 h-4" />
+                Être rappelé
+              </button>
             </div>
           </div>
 
@@ -86,6 +94,11 @@ export function Hero() {
           </div>
         </div>
       </div>
+
+      <CallbackFormModal
+        open={callbackOpen}
+        onOpenChange={setCallbackOpen}
+      />
     </div>
   );
 }

@@ -60,12 +60,8 @@ function LeadModal({
             if (result.leadId) {
                 trackLeadSubmitted(result.leadId)
             }
-            toast.success("Demande envoyée avec succès !", {
-                description:
-                    "Notre équipe vous contactera dans les plus brefs délais.",
-            })
             onOpenChange(false)
-            ;(e.target as HTMLFormElement).reset()
+                ; (e.target as HTMLFormElement).reset()
         } catch (error) {
             toast.error(
                 error instanceof Error
@@ -183,7 +179,7 @@ function LeadModal({
                                             <select
                                                 id="modal-situation"
                                                 name="situation"
-                                                className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+                                                className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
                                             >
                                                 <option value="">Sélectionnez votre projet</option>
                                                 {situationOptions.map((opt) => (

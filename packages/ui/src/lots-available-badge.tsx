@@ -6,7 +6,7 @@ interface LotsAvailableBadgeProps {
   className?: string;
 }
 
-export function LotsAvailableBadge({
+function LotsAvailableBadge({
   count,
   variant = "accent",
   className = "",
@@ -28,3 +28,5 @@ export function LotsAvailableBadge({
     </span>
   );
 }
+
+export { LotsAvailableBadge, type LotsAvailableBadgeProps };

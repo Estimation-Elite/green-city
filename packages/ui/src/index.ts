@@ -18,6 +18,15 @@ export {
 export { Header } from "./header";
 export { Footer } from "./footer";
 
+// Shared UI components
+export { LiveViewerCount } from "./live-viewer-count";
+export { LotsAvailableBadge } from "./lots-available-badge";
+export { BrochureForm } from "./brochure-form";
+export { CallbackForm } from "./callback-form";
+export { BrochureFormModal } from "./brochure-form-modal";
+export { CallbackFormModal } from "./callback-form-modal";
+export { StickyCtaBar } from "./sticky-cta-bar";
+
 // Landing page sections
 export { CountdownTimer } from "./countdown-timer";
 export { LandingHero } from "./landing-hero";

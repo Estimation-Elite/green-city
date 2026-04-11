@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Check } from "lucide-react";
-import { LiveViewerCount } from "@/components/ui/LiveViewerCount";
+
 
 const features = [
   "Balcon ou terrasse pour chaque logement",
@@ -25,9 +25,6 @@ export function Program() {
             Une architecture contemporaine aux lignes douces et balcons arrondis,
             dans un environnement végétalisé.
           </p>
-          <div className="flex justify-center mt-6">
-            <LiveViewerCount variant="light" />
-          </div>
         </div>
 
         {/* Description + images */}

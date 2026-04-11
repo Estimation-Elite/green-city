@@ -1,4 +1,8 @@
-import { TrainFront, Leaf, Trees, Maximize } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { TrainFront, Leaf, Trees, Maximize, Phone } from "lucide-react";
+import { CallbackFormModal } from "@repo/ui";
 
 const advantages = [
   {
@@ -28,6 +32,8 @@ const advantages = [
 ];
 
 export function Advantages() {
+  const [callbackOpen, setCallbackOpen] = useState(false);
+
   return (
     <div className="bg-light py-20">
       <div className="container mx-auto max-w-7xl px-4">
@@ -54,7 +60,22 @@ export function Advantages() {
             </div>
           ))}
         </div>
+
+        <div className="text-center mt-12">
+          <button
+            onClick={() => setCallbackOpen(true)}
+            className="inline-flex items-center gap-2 bg-primary hover:bg-primary-dark text-white font-semibold px-8 py-4 rounded-lg transition cursor-pointer text-lg"
+          >
+            <Phone className="w-5 h-5" />
+            Être rappelé
+          </button>
+        </div>
       </div>
+
+      <CallbackFormModal
+        open={callbackOpen}
+        onOpenChange={setCallbackOpen}
+      />
     </div>
   );
 }

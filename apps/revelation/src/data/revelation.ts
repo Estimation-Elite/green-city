@@ -7,6 +7,8 @@ export const siteConfig = {
 export const headerData = {
   projectLogoSrc: "/images/greencity-logo.png",
   projectLogoAlt: "GreenCity Immobilier",
+  partnerLogoSrc: "/images/promoMidi-logo-blanc.png",
+  partnerLogoAlt: "Promomidi",
   navLinks: [
     { label: "Programme", href: "#programme" },
     { label: "Habiter", href: "#habiter" },
@@ -78,10 +80,19 @@ export const socialProofData = {
   totalLots: 168,
 };
 
+export const brochureData = {
+  pdfUrl: "/documents/Revelation-Brochure.pdf",
+  pdfFilename: "Revelation-Brochure.pdf",
+};
+
+export const availableLots = 39;
+
 export const footerData = {
   projectName: "Révélation",
   developerName: "GreenCity Immobilier & Promomidi",
   logoSrc: "/images/greencity-logo.png",
+  partnerLogoSrc: "/images/promoMidi-logo-blanc.png",
+  partnerLogoAlt: "Promomidi",
   phone: "",
   email: "",
   address: "218/226 Route de Revel, 31400 Toulouse",

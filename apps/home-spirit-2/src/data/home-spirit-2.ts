@@ -82,6 +82,13 @@ export const socialProofData = {
   totalLots: 79,
 };
 
+export const brochureData = {
+  pdfUrl: "/documents/HomeSpirit2-Brochure.pdf",
+  pdfFilename: "HomeSpirit2-Brochure.pdf",
+};
+
+export const availableLots = 34;
+
 export const footerData = {
   projectName: "Home Spirit 2",
   developerName: "Sporting Promotion & GreenCity Immobilier",

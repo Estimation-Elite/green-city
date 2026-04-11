@@ -1,4 +1,8 @@
-import { Award, Building, Home, Star } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { Award, Building, Home, Phone, Star } from "lucide-react";
+import { CallbackFormModal } from "@repo/ui";
 
 const stats = [
   { value: "79", label: "Logements", icon: Home },
@@ -32,6 +36,8 @@ const testimonials = [
 ];
 
 export function Reassurance() {
+  const [callbackOpen, setCallbackOpen] = useState(false);
+
   return (
     <div className="py-20 bg-light">
       <div className="container mx-auto max-w-7xl px-4">
@@ -93,7 +99,22 @@ export function Reassurance() {
             </div>
           ))}
         </div>
+
+        <div className="text-center mt-12">
+          <button
+            onClick={() => setCallbackOpen(true)}
+            className="inline-flex items-center gap-2 bg-primary hover:bg-primary-dark text-white font-semibold px-8 py-4 rounded-lg transition cursor-pointer text-lg"
+          >
+            <Phone className="w-5 h-5" />
+            Être rappelé
+          </button>
+        </div>
       </div>
+
+      <CallbackFormModal
+        open={callbackOpen}
+        onOpenChange={setCallbackOpen}
+      />
     </div>
   );
 }

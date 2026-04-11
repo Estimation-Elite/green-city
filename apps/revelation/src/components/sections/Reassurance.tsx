@@ -1,11 +1,8 @@
-import { Award, Building, Home, Star } from "lucide-react";
+"use client";
 
-const stats = [
-  { value: "168", label: "Logements", icon: Home },
-  { value: "5", label: "Bâtiments", icon: Building },
-  { value: "100 %", label: "Avec extérieur", icon: Star },
-  { value: "9 000+", label: "Logements livrés", icon: Award },
-];
+import { useState } from "react";
+import { Award, Phone, Star } from "lucide-react";
+import { CallbackFormModal } from "@repo/ui";
 
 const testimonials = [
   {
@@ -32,6 +29,8 @@ const testimonials = [
 ];
 
 export function Reassurance() {
+  const [callbackOpen, setCallbackOpen] = useState(false);
+
   return (
     <div className="py-20 bg-light">
       <div className="container mx-auto max-w-7xl px-4">
@@ -60,17 +59,6 @@ export function Reassurance() {
           ))}
         </div>
 
-        {/* Chiffres clés */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-          {stats.map((stat) => (
-            <div key={stat.label} className="bg-white rounded-2xl p-6 text-center shadow-sm">
-              <stat.icon className="w-8 h-8 text-primary mx-auto mb-3" />
-              <div className="text-3xl font-bold text-foreground">{stat.value}</div>
-              <div className="text-sm text-muted mt-1">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-
         {/* Témoignages */}
         <h3 className="text-2xl font-bold text-foreground text-center mb-8">
           Ils nous font confiance
@@ -93,7 +81,22 @@ export function Reassurance() {
             </div>
           ))}
         </div>
+
+        <div className="text-center mt-12">
+          <button
+            onClick={() => setCallbackOpen(true)}
+            className="inline-flex items-center gap-2 bg-primary hover:bg-primary-dark text-white font-semibold px-8 py-4 rounded-lg transition cursor-pointer text-lg"
+          >
+            <Phone className="w-5 h-5" />
+            Être rappelé
+          </button>
+        </div>
       </div>
+
+      <CallbackFormModal
+        open={callbackOpen}
+        onOpenChange={setCallbackOpen}
+      />
     </div>
   );
 }

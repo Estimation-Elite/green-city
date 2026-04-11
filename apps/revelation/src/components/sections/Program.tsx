@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Check } from "lucide-react";
-import { LiveViewerCount } from "@/components/ui/LiveViewerCount";
+
 
 const features = [
   "Jardin privatif, loggia, balcon ou terrasse",
@@ -25,9 +25,6 @@ export function Program() {
             5 collectifs avec un grand espace central boisé, des jardins et des
             cheminements piétonniers au cœur du Faubourg Malepère.
           </p>
-          <div className="flex justify-center mt-6">
-            <LiveViewerCount variant="light" />
-          </div>
         </div>
 
         {/* Description + images */}

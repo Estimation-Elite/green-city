@@ -35,6 +35,14 @@
     "./analytics/trackVisitScheduled": {
       "types": "./src/analytics/trackVisitScheduled.ts",
       "default": "./src/analytics/trackVisitScheduled.ts"
+    },
+    "./analytics/trackCallbackScheduled": {
+      "types": "./src/analytics/trackCallbackScheduled.ts",
+      "default": "./src/analytics/trackCallbackScheduled.ts"
+    },
+    "./greencity-api": {
+      "types": "./src/greencity-api.ts",
+      "default": "./src/greencity-api.ts"
     }
   },
   "dependencies": {

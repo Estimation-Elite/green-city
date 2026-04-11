@@ -7,8 +7,8 @@ export const siteConfig = {
 export const headerData = {
   projectLogoSrc: "/images/greencity-logo.png",
   projectLogoAlt: "GreenCity Immobilier",
-  partnerLogoSrc: "/images/sporting_promotion-logo.svg",
-  partnerLogoAlt: "Sporting Promotion",
+  partnerLogoSrc: "/images/acte-s-logo.svg",
+  partnerLogoAlt: "ACTE-S",
   navLinks: [
     { label: "Programme", href: "#programme" },
     { label: "Habiter", href: "#habiter" },
@@ -81,12 +81,19 @@ export const socialProofData = {
   totalLots: 48,
 };
 
+export const brochureData = {
+  pdfUrl: "/documents/LArchipel-Brochure.pdf",
+  pdfFilename: "LArchipel-Brochure.pdf",
+};
+
+export const availableLots = 17;
+
 export const footerData = {
   projectName: "L'Archipel",
-  developerName: "Sporting Promotion & GreenCity Immobilier",
+  developerName: "ACTE-S & GreenCity Immobilier",
   logoSrc: "/images/greencity-logo.png",
-  partnerLogoSrc: "/images/sporting_promotion-logo.svg",
-  partnerLogoAlt: "Sporting Promotion",
+  partnerLogoSrc: "/images/acte-s-logo.svg",
+  partnerLogoAlt: "ACTE-S",
   // phone: "0 805 258 805",
   email: "",
   // address: "178 Rue Edmond Rostand, 31200 Toulouse",
