@@ -31,6 +31,10 @@
     "./analytics/trackBrochureDownloaded": {
       "types": "./src/analytics/trackBrochureDownloaded.ts",
       "default": "./src/analytics/trackBrochureDownloaded.ts"
+    },
+    "./analytics/trackVisitScheduled": {
+      "types": "./src/analytics/trackVisitScheduled.ts",
+      "default": "./src/analytics/trackVisitScheduled.ts"
     }
   },
   "dependencies": {

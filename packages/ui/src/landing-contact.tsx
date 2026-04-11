@@ -42,6 +42,7 @@ type LandingContactProps = {
     contactInfo: ContactInfo
     pricingInfo?: PricingInfo
     situationOptions?: SituationOption[]
+    visitUrl?: string
     className?: string
 }
 
@@ -57,6 +58,7 @@ function LandingContact({
         { value: "retraite", label: "Retraité(e)" },
         { value: "autre", label: "Autre" },
     ],
+    visitUrl = "/rendez-vous",
     className,
 }: LandingContactProps) {
     const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -379,9 +381,11 @@ function LandingContact({
                             <p className="mb-4 text-sm text-gray-500">
                                 Découvrez le projet sur place avec nos conseillers
                             </p>
-                            <Button variant="primary" size="default" className="w-full">
-                                <Home className="size-4" />
-                                Réserver une visite
+                            <Button variant="primary" size="default" className="w-full" asChild>
+                                <a href={visitUrl}>
+                                    <Home className="size-4" />
+                                    Réserver une visite
+                                </a>
                             </Button>
                         </div>
                     </div>
