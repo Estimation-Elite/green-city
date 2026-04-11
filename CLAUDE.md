@@ -45,7 +45,7 @@ Each app (`home-spirit-2`, `l-archipel`, `park-view`, `revelation`) is a Next.js
 ### Packages (`packages/`)
 
 - **`@repo/ui`** - Shared UI components: primitives (Button, Input, Carousel), layout (Header, Footer), and landing page sections (Hero, ContactForm, PhotoGallery, LeadModal, VisitWizard, etc.). Uses Radix UI, Embla Carousel, Framer Motion, Lucide icons.
-- **`@repo/core`** - Business logic: API route handlers (`leadHandler`, `rdvHandler`) with webhook integration, analytics (GTM, event tracking). Uses modular sub-path exports (`@repo/core/api-routes`, `@repo/core/analytics/GTM`, etc.).
+- **`@repo/core`** - Business logic: API route handlers (`leadHandler`, `rdvHandler`) with GreenCity ERP API integration, analytics (GTM, event tracking). Uses modular sub-path exports (`@repo/core/api-routes`, `@repo/core/analytics/GTM`, etc.).
 - **`@repo/utils`** - `cn()` utility (clsx + tailwind-merge)
 - **`@repo/config-eslint`** - Shared ESLint config (neostandard)
 - **`@repo/config-typescript`** - Shared tsconfig
@@ -54,7 +54,7 @@ Each app (`home-spirit-2`, `l-archipel`, `park-view`, `revelation`) is a Next.js
 
 - **Data-driven content**: Each app defines all its content in `src/data/<project-name>.ts` (text, images, nav links, config). Section components import from this file.
 - **Theming**: Each app has its own color scheme defined as CSS custom properties in `globals.css`, consumed by Tailwind utilities.
-- **API webhooks**: Lead/RDV form submissions are forwarded to external CRM via `HOOK_FORM` and `HOOK_RDV` env vars.
+- **API integration**: Lead/RDV form submissions are sent to the GreenCity ERP API via `GREENCITY_API_URL`, `GREENCITY_API_KEY`, and `GREENCITY_API_SECRET` env vars.
 - **New project creation**: Copy an existing app, update `package.json` name, Dockerfile filter, data file, and `globals.css` colors.
 
 ## Tech Stack
@@ -67,5 +67,6 @@ Each app (`home-spirit-2`, `l-archipel`, `park-view`, `revelation`) is a Next.js
 ## Environment Variables
 
 - `GTM_ID` - Google Tag Manager container ID
-- `HOOK_FORM` - Webhook URL for lead form submissions
-- `HOOK_RDV` - Webhook URL for visit appointment bookings
+- `GREENCITY_API_URL` - GreenCity ERP API base URL (defaults to `https://greencity.erp.iwit.pro`)
+- `GREENCITY_API_KEY` - GreenCity API key
+- `GREENCITY_API_SECRET` - GreenCity API secret
