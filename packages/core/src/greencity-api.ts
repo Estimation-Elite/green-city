@@ -27,13 +27,13 @@ let cachedToken: string | null = null;
 let tokenExpiresAt = 0;
 
 function getApiConfig() {
-  const baseUrl = process.env.GREENCITY_API_URL || "https://greencity.erp.iwit.pro";
+  const baseUrl = process.env.GREENCITY_API_URL;
   const apiKey = process.env.GREENCITY_API_KEY;
   const apiSecret = process.env.GREENCITY_API_SECRET;
 
-  if (!apiKey || !apiSecret) {
+  if (!apiKey || !apiSecret || !baseUrl) {
     throw new Error(
-      "GREENCITY_API_KEY and GREENCITY_API_SECRET must be set in environment variables",
+      "GREENCITY_API_KEY, GREENCITY_API_SECRET, and GREENCITY_API_URL must be set in environment variables",
     );
   }
 
@@ -73,7 +73,7 @@ async function getAuthToken(): Promise<string> {
 
 export async function createGreenCityLead(
   payload: GreenCityLeadPayload,
-): Promise<{ id: string; [key: string]: unknown }> {
+): Promise<{ id: string;[key: string]: unknown }> {
   const { baseUrl } = getApiConfig();
   const token = await getAuthToken();
 
