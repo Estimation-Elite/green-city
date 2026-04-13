@@ -27,7 +27,7 @@ interface BrochureFormData {
 interface BrochureFormProps {
   pdfUrl: string;
   pdfFilename: string;
-  residenceId?: string;
+  residenceRef?: string;
   onSuccess?: () => void;
   className?: string;
 }
@@ -62,7 +62,7 @@ const FINANCING_OPTIONS = [
 function BrochureForm({
   pdfUrl,
   pdfFilename,
-  residenceId,
+  residenceRef,
   onSuccess,
   className = "",
 }: BrochureFormProps) {
@@ -133,21 +133,23 @@ function BrochureForm({
     setSubmitting(true);
 
     try {
+      const form = {
+        prenom: data.prenom.trim(),
+        nom: data.nom.trim(),
+        email: data.email.trim(),
+        telephone: data.telephone.trim(),
+        objectif: data.objectif,
+        purchaseTime: data.purchaseTime,
+        financingValidation: data.financingValidation,
+        formType: "brochure",
+        utmSource: utmParams.utm_source,
+        residenceRef,
+      }
+
       const response = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prenom: data.prenom.trim(),
-          nom: data.nom.trim(),
-          email: data.email.trim(),
-          telephone: data.telephone.trim(),
-          objectif: data.objectif,
-          purchaseTime: data.purchaseTime,
-          financingValidation: data.financingValidation,
-          formType: "brochure",
-          utmSource: utmParams.utm_source,
-          residenceId,
-        }),
+        body: JSON.stringify(form),
       });
 
       const result = await response.json();

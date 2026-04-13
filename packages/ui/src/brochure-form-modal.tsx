@@ -10,7 +10,7 @@ interface BrochureFormModalProps {
   onOpenChange: (open: boolean) => void;
   pdfUrl: string;
   pdfFilename: string;
-  residenceId?: string;
+  residenceRef?: string;
 }
 
 function BrochureFormModal({
@@ -18,7 +18,7 @@ function BrochureFormModal({
   onOpenChange,
   pdfUrl,
   pdfFilename,
-  residenceId,
+  residenceRef,
 }: BrochureFormModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -63,7 +63,7 @@ function BrochureFormModal({
                 <BrochureForm
                   pdfUrl={pdfUrl}
                   pdfFilename={pdfFilename}
-                  residenceId={residenceId}
+                  residenceRef={residenceRef}
                 />
               </motion.div>
             </Dialog.Content>

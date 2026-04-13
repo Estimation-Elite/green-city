@@ -1,3 +1,6 @@
-import { leadHandler } from "@repo/core/api-routes";
+import { createLeadHandler } from "@repo/core/api-routes";
+import { siteConfig } from "@/data/archipel";
 
-export const POST = leadHandler;
+export const POST = createLeadHandler({
+  defaultResidenceName: siteConfig.projectName,
+});

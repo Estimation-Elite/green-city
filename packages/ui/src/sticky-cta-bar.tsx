@@ -9,13 +9,13 @@ import { CallbackFormModal } from "./callback-form-modal";
 interface StickyCtaBarProps {
   pdfUrl: string;
   pdfFilename: string;
-  residenceId?: string;
+  residenceRef?: string;
 }
 
 function StickyCtaBar({
   pdfUrl,
   pdfFilename,
-  residenceId,
+  residenceRef,
 }: StickyCtaBarProps) {
   const [brochureOpen, setBrochureOpen] = useState(false);
   const [callbackOpen, setCallbackOpen] = useState(false);
@@ -79,12 +79,12 @@ function StickyCtaBar({
         onOpenChange={setBrochureOpen}
         pdfUrl={pdfUrl}
         pdfFilename={pdfFilename}
-        residenceId={residenceId}
+        residenceRef={residenceRef}
       />
       <CallbackFormModal
         open={callbackOpen}
         onOpenChange={setCallbackOpen}
-        residenceId={residenceId}
+        residenceRef={residenceRef}
       />
     </>
   );

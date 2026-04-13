@@ -8,13 +8,13 @@ import { CallbackForm } from "./callback-form";
 interface CallbackFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  residenceId?: string;
+  residenceRef?: string;
 }
 
 function CallbackFormModal({
   open,
   onOpenChange,
-  residenceId,
+  residenceRef,
 }: CallbackFormModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -56,7 +56,7 @@ function CallbackFormModal({
                   </Dialog.Description>
                 </div>
 
-                <CallbackForm residenceId={residenceId} />
+                <CallbackForm residenceRef={residenceRef} />
               </motion.div>
             </Dialog.Content>
           </Dialog.Portal>

@@ -59,12 +59,8 @@ function buildPageHref(page: number, limit: number) {
   return `/?${params.toString()}`;
 }
 
-function formatLeadName(lead: GreenCityLead) {
-  return `${lead.firstName} ${lead.lastName}`.trim();
-}
-
-function formatPhone(lead: GreenCityLead) {
-  return lead.phoneMobile || lead.phoneLandline || "Non renseigne";
+function formatOptionalValue(value?: string | null) {
+  return value || "Non renseigne";
 }
 
 function LeadStateBadge({ state }: { state: GreenCityLeadState }) {
@@ -155,8 +151,11 @@ export default async function LeadsPage({ searchParams }: PageProps) {
             <div>
               <h2 className="text-xl font-semibold text-primary">Leads</h2>
               <p className="mt-1 text-sm text-muted">
-                Nom, email, telephone, etat CRM et raison de perte si
-                disponible.
+                Prenom, nom, emails, telephones, etat CRM et raison de perte.
+              </p>
+              <p className="mt-2 text-xs uppercase tracking-[0.14em] text-slate-500">
+                Date d&apos;ajout indisponible: ce champ n&apos;est pas renvoye
+                par `GET /api/lead`.
               </p>
             </div>
           </div>
@@ -176,9 +175,11 @@ export default async function LeadsPage({ searchParams }: PageProps) {
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50/90">
                   <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    <th className="px-6 py-4">Contact</th>
+                    <th className="px-6 py-4">Prenom</th>
+                    <th className="px-6 py-4">Nom</th>
                     <th className="px-6 py-4">Email</th>
-                    <th className="px-6 py-4">Telephone</th>
+                    <th className="px-6 py-4">Mobile</th>
+                    <th className="px-6 py-4">Fixe</th>
                     <th className="px-6 py-4">Etat</th>
                     <th className="px-6 py-4">Raison de perte</th>
                   </tr>
@@ -186,10 +187,11 @@ export default async function LeadsPage({ searchParams }: PageProps) {
                 <tbody className="divide-y divide-slate-200 bg-white/80">
                   {leads.data.map((lead, index) => (
                     <tr key={`${lead.email}-${lead.state}-${index}`}>
-                      <td className="px-6 py-4 align-top">
-                        <p className="font-semibold text-slate-900">
-                          {formatLeadName(lead)}
-                        </p>
+                      <td className="px-6 py-4 align-top text-sm font-medium text-slate-900">
+                        {lead.firstName}
+                      </td>
+                      <td className="px-6 py-4 align-top text-sm font-medium text-slate-900">
+                        {lead.lastName}
                       </td>
                       <td className="px-6 py-4 align-top text-sm text-slate-700">
                         <a
@@ -200,7 +202,10 @@ export default async function LeadsPage({ searchParams }: PageProps) {
                         </a>
                       </td>
                       <td className="px-6 py-4 align-top text-sm text-slate-700">
-                        {formatPhone(lead)}
+                        {formatOptionalValue(lead.phoneMobile)}
+                      </td>
+                      <td className="px-6 py-4 align-top text-sm text-slate-700">
+                        {formatOptionalValue(lead.phoneLandline)}
                       </td>
                       <td className="px-6 py-4 align-top">
                         <LeadStateBadge state={lead.state} />
@@ -220,6 +225,17 @@ export default async function LeadsPage({ searchParams }: PageProps) {
               Pagination basee sur `offset` et `limit`.
             </p>
             <div className="flex items-center gap-3">
+              <Link
+                href={buildPageHref(1, leads.limit)}
+                aria-disabled={currentPage <= 1}
+                className={`inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  currentPage <= 1
+                    ? "pointer-events-none bg-slate-100 text-slate-400"
+                    : "border border-slate-200 bg-white text-primary hover:bg-slate-50"
+                }`}
+              >
+                Premiere page
+              </Link>
               <Link
                 href={buildPageHref(Math.max(currentPage - 1, 1), leads.limit)}
                 aria-disabled={currentPage <= 1}
@@ -244,6 +260,17 @@ export default async function LeadsPage({ searchParams }: PageProps) {
                 }`}
               >
                 Page suivante
+              </Link>
+              <Link
+                href={buildPageHref(totalPages, leads.limit)}
+                aria-disabled={currentPage >= totalPages}
+                className={`inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  currentPage >= totalPages
+                    ? "pointer-events-none bg-slate-100 text-slate-400"
+                    : "border border-slate-200 bg-white text-primary hover:bg-slate-50"
+                }`}
+              >
+                Derniere page
               </Link>
             </div>
           </div>

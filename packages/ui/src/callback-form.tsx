@@ -29,7 +29,7 @@ interface CallbackFormData {
 }
 
 interface CallbackFormProps {
-  residenceId?: string;
+  residenceRef?: string;
   onSuccess?: () => void;
   className?: string;
 }
@@ -59,7 +59,7 @@ const TIME_SLOTS = [
 // ────────────────────────────────────────────
 
 function CallbackForm({
-  residenceId,
+  residenceRef,
   onSuccess,
   className = "",
 }: CallbackFormProps) {
@@ -130,7 +130,7 @@ function CallbackForm({
           message: form.message.trim() || undefined,
           formType: "callback",
           utmSource: utmParams.utm_source,
-          residenceId,
+          residenceRef,
         }),
       });
 

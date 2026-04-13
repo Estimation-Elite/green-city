@@ -1,3 +1,6 @@
-import { rdvHandler } from "@repo/core/api-routes";
+import { createRdvHandler } from "@repo/core/api-routes";
+import { siteConfig } from "@/data/home-spirit-2";
 
-export const POST = rdvHandler;
+export const POST = createRdvHandler({
+  defaultResidenceName: siteConfig.projectName,
+});

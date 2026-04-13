@@ -1,6 +1,6 @@
 import { Clock, Shield } from "lucide-react";
 import { BrochureForm } from "@repo/ui";
-import { brochureData } from "@/data/archipel";
+import { brochureData, siteConfig } from "@/data/archipel";
 
 export function FinalCTA() {
   return (
@@ -47,6 +47,7 @@ export function FinalCTA() {
             <BrochureForm
               pdfUrl={brochureData.pdfUrl}
               pdfFilename={brochureData.pdfFilename}
+              residenceRef={siteConfig.projectName}
             />
           </div>
         </div>

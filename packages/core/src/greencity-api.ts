@@ -23,7 +23,7 @@ export interface GreenCityLeadPayload {
   financingValidation?: FinancingValidation;
   appointmentDate?: string;
   comment?: string;
-  residences?: string[];
+  residences?: number[];
 }
 
 export interface GreenCityLead {
@@ -59,6 +59,27 @@ export interface GreenCityResidence {
 
 let cachedToken: string | null = null;
 let tokenExpiresAt = 0;
+const residenceIdCache = new Map<string, number | null>();
+
+function normalizeBaseUrl(baseUrl: string) {
+  const trimmed = baseUrl.trim().replace(/\/+$/, "");
+  return trimmed.replace(/\/api$/, "");
+}
+
+function buildApiUrl(path: string) {
+  const { baseUrl } = getApiConfig();
+  return `${baseUrl}/api/${path.replace(/^\/+/, "")}`;
+}
+
+function normalizeResidenceName(name: string) {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/['’]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
 
 function getApiConfig() {
   const baseUrl = process.env.GREENCITY_API_URL;
@@ -71,7 +92,7 @@ function getApiConfig() {
     );
   }
 
-  return { baseUrl, apiKey, apiSecret };
+  return { baseUrl: normalizeBaseUrl(baseUrl), apiKey, apiSecret };
 }
 
 async function getAuthToken(): Promise<string> {
@@ -79,18 +100,14 @@ async function getAuthToken(): Promise<string> {
     return cachedToken;
   }
 
-  const { baseUrl, apiKey, apiSecret } = getApiConfig();
+  const { apiKey, apiSecret } = getApiConfig();
 
-  console.log("url:", `${baseUrl}/api/login`);
-
-  const response = await fetch(`${baseUrl}/api/login`, {
+  const response = await fetch(buildApiUrl("login"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ api_key: apiKey, api_secret: apiSecret }),
     cache: "no-store",
   });
-
-  console.log("response:", response);
 
   if (!response.ok) {
     const text = await response.text().catch(() => response.statusText);
@@ -112,7 +129,6 @@ async function getAuthToken(): Promise<string> {
 export async function createGreenCityLead(
   payload: GreenCityLeadPayload,
 ): Promise<{ id: string;[key: string]: unknown }> {
-  const { baseUrl } = getApiConfig();
   const token = await getAuthToken();
 
   // Remove undefined values
@@ -123,7 +139,7 @@ export async function createGreenCityLead(
     }
   }
 
-  const response = await fetch(`${baseUrl}/api/lead`, {
+  const response = await fetch(buildApiUrl("lead"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -154,9 +170,8 @@ export async function fetchGreenCityLeads({
   offset,
   limit,
 }: FetchGreenCityLeadsParams = {}): Promise<GreenCityLeadCollection> {
-  const { baseUrl } = getApiConfig();
   const token = await getAuthToken();
-  const url = new URL("/api/lead", baseUrl);
+  const url = new URL(buildApiUrl("lead"));
 
   if (offset !== undefined) {
     url.searchParams.set("offset", String(offset));
@@ -191,9 +206,8 @@ export async function fetchGreenCityLeads({
 }
 
 export async function fetchGreenCityResidences(): Promise<GreenCityResidence[]> {
-  const { baseUrl } = getApiConfig();
   const token = await getAuthToken();
-  const url = new URL("/api/lead/residences", baseUrl);
+  const url = new URL(buildApiUrl("lead/residences"));
 
   const response = await fetch(url, {
     method: "GET",
@@ -217,4 +231,37 @@ export async function fetchGreenCityResidences(): Promise<GreenCityResidence[]> 
   }
 
   return response.json();
+}
+
+export async function findGreenCityResidenceIdByName(
+  residenceName: string,
+): Promise<number | undefined> {
+  const normalizedTarget = normalizeResidenceName(residenceName);
+
+  if (residenceIdCache.has(normalizedTarget)) {
+    const cachedId = residenceIdCache.get(normalizedTarget);
+    return cachedId ?? undefined;
+  }
+
+  const residences = await fetchGreenCityResidences();
+  const exactMatch = residences.find(
+    (residence) => normalizeResidenceName(residence.name) === normalizedTarget,
+  );
+
+  if (exactMatch) {
+    residenceIdCache.set(normalizedTarget, exactMatch.id);
+    return exactMatch.id;
+  }
+
+  const partialMatches = residences.filter((residence) =>
+    normalizeResidenceName(residence.name).includes(normalizedTarget),
+  );
+
+  if (partialMatches.length === 1) {
+    residenceIdCache.set(normalizedTarget, partialMatches[0].id);
+    return partialMatches[0].id;
+  }
+
+  residenceIdCache.set(normalizedTarget, null);
+  return undefined;
 }
