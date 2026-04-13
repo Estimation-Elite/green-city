@@ -7,7 +7,7 @@ export const siteConfig = {
 export const headerData = {
   projectLogoSrc: "/images/greencity-logo.png",
   projectLogoAlt: "GreenCity Immobilier",
-  partnerLogoSrc: "/images/acte-s-logo.svg",
+  partnerLogoSrc: "/images/acte-s-logo-black.svg",
   partnerLogoAlt: "ACTE-S",
   navLinks: [
     { label: "Programme", href: "#programme" },

@@ -5,6 +5,13 @@
 export type GreenCityObjective = "PRINCIPAL_RESIDENCE" | "INVEST" | "RENTAL" | "LAND";
 export type PurchaseTime = "NOW" | "6_MONTHS";
 export type FinancingValidation = "YES" | "NO" | "IN_PROGRESS";
+export type GreenCityLeadState =
+  | "NEW"
+  | "DISCOVERY_CALL"
+  | "APPOINTMENT"
+  | "RESERVATION"
+  | "ACTED"
+  | "LOST";
 
 export interface GreenCityLeadPayload {
   firstName: string;
@@ -17,6 +24,33 @@ export interface GreenCityLeadPayload {
   appointmentDate?: string;
   comment?: string;
   residences?: string[];
+}
+
+export interface GreenCityLead {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneMobile?: string | null;
+  phoneLandline?: string | null;
+  state: GreenCityLeadState;
+  lostReason?: string | null;
+}
+
+export interface GreenCityLeadCollection {
+  limit: number;
+  offset: number;
+  total: number;
+  data: GreenCityLead[];
+}
+
+export interface FetchGreenCityLeadsParams {
+  offset?: number;
+  limit?: number;
+}
+
+export interface GreenCityResidence {
+  id: number;
+  name: string;
 }
 
 // ────────────────────────────────────────────
@@ -47,12 +81,16 @@ async function getAuthToken(): Promise<string> {
 
   const { baseUrl, apiKey, apiSecret } = getApiConfig();
 
+  console.log("url:", `${baseUrl}/api/login`);
+
   const response = await fetch(`${baseUrl}/api/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ apiKey, apiSecret }),
+    body: JSON.stringify({ api_key: apiKey, api_secret: apiSecret }),
     cache: "no-store",
   });
+
+  console.log("response:", response);
 
   if (!response.ok) {
     const text = await response.text().catch(() => response.statusText);
@@ -101,6 +139,75 @@ export async function createGreenCityLead(
       cachedToken = null;
       tokenExpiresAt = 0;
       return createGreenCityLead(payload);
+    }
+
+    const errorText = await response.text().catch(() => response.statusText);
+    throw new Error(
+      `GreenCity API error (${response.status}): ${errorText}`,
+    );
+  }
+
+  return response.json();
+}
+
+export async function fetchGreenCityLeads({
+  offset,
+  limit,
+}: FetchGreenCityLeadsParams = {}): Promise<GreenCityLeadCollection> {
+  const { baseUrl } = getApiConfig();
+  const token = await getAuthToken();
+  const url = new URL("/api/lead", baseUrl);
+
+  if (offset !== undefined) {
+    url.searchParams.set("offset", String(offset));
+  }
+
+  if (limit !== undefined) {
+    url.searchParams.set("limit", String(limit));
+  }
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    if (response.status === 401 && cachedToken) {
+      cachedToken = null;
+      tokenExpiresAt = 0;
+      return fetchGreenCityLeads({ offset, limit });
+    }
+
+    const errorText = await response.text().catch(() => response.statusText);
+    throw new Error(
+      `GreenCity API error (${response.status}): ${errorText}`,
+    );
+  }
+
+  return response.json();
+}
+
+export async function fetchGreenCityResidences(): Promise<GreenCityResidence[]> {
+  const { baseUrl } = getApiConfig();
+  const token = await getAuthToken();
+  const url = new URL("/api/lead/residences", baseUrl);
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    if (response.status === 401 && cachedToken) {
+      cachedToken = null;
+      tokenExpiresAt = 0;
+      return fetchGreenCityResidences();
     }
 
     const errorText = await response.text().catch(() => response.statusText);

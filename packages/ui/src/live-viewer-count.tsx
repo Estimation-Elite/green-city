@@ -14,7 +14,7 @@ interface LiveViewerCountConfig {
 
 const DEFAULT_CONFIG: LiveViewerCountConfig = {
   min: 8,
-  max: 23,
+  max: 48,
   updateMinMs: 5000,
   updateMaxMs: 15000,
   incrementMin: -2,
@@ -23,7 +23,7 @@ const DEFAULT_CONFIG: LiveViewerCountConfig = {
 
 const FAST_CONFIG: LiveViewerCountConfig = {
   min: 12,
-  max: 35,
+  max: 119,
   updateMinMs: 2000,
   updateMaxMs: 4000,
   incrementMin: 1,
@@ -106,11 +106,10 @@ function LiveViewerCount({
 
   return (
     <div
-      className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm ${
-        isDark
-          ? "bg-white/10 border border-white/20 text-white"
-          : "bg-dark/5 border border-dark/10 text-foreground"
-      } ${className}`}
+      className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm ${isDark
+        ? "bg-white/10 border border-white/20 text-white"
+        : "bg-dark/5 border border-dark/10 text-foreground"
+        } ${className}`}
     >
       <span className="relative flex h-2 w-2">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />

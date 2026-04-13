@@ -5,11 +5,11 @@ import { Eye } from "lucide-react";
 
 const MIN = 8;
 const MAX = 23;
-const UPDATE_MIN_MS = 5000;
-const UPDATE_MAX_MS = 15000;
+const UPDATE_MIN_MS = 3000;
+const UPDATE_MAX_MS = 10000;
 
 let currentCount = 0;
-let listeners = new Set<() => void>();
+const listeners = new Set<() => void>();
 let timerId: ReturnType<typeof setTimeout> | null = null;
 
 function randomInt(min: number, max: number) {
@@ -66,11 +66,10 @@ export function LiveViewerCount({
 
   return (
     <div
-      className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm ${
-        isDark
-          ? "bg-white/10 border border-white/20 text-white"
-          : "bg-dark/5 border border-dark/10 text-foreground"
-      } ${className}`}
+      className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm ${isDark
+        ? "bg-white/10 border border-white/20 text-white"
+        : "bg-dark/5 border border-dark/10 text-foreground"
+        } ${className}`}
     >
       <span className="relative flex h-2 w-2">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
