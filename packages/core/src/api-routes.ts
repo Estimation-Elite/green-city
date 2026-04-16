@@ -6,6 +6,7 @@ import {
   type GreenCityObjective,
   type PurchaseTime,
   type FinancingValidation,
+  type LeadTemperature,
 } from "./greencity-api";
 
 // ────────────────────────────────────────────
@@ -81,6 +82,36 @@ function mapFinancingValidation(
     EN_COURS: "IN_PROGRESS",
   };
   return map[value];
+}
+
+// ────────────────────────────────────────────
+// Temperature scoring
+// ────────────────────────────────────────────
+
+function computeTemperature(
+  formType: "lead" | "rdv",
+  payload: {
+    objectif?: string;
+    purchaseTime?: string;
+    financingValidation?: string;
+  },
+): LeadTemperature {
+  // RDV / visite → toujours HOT
+  if (formType === "rdv") return "HOT";
+
+  const hasValidFinancing = payload.financingValidation === "OUI";
+  const hasShortTimeline =
+    payload.purchaseTime === "IMMEDIAT" || payload.purchaseTime === "6_MOIS";
+  const hasObjective = !!payload.objectif;
+
+  // Financement validé + délai court → HOT
+  if (hasValidFinancing && hasShortTimeline) return "HOT";
+
+  // Objectif défini mais financement flou → LUKEWARM
+  if (hasObjective) return "LUKEWARM";
+
+  // Tout le reste → COLD
+  return "COLD";
 }
 
 // ────────────────────────────────────────────
@@ -171,6 +202,31 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
         defaultResidenceName: options.defaultResidenceName,
       });
 
+      const temperature = computeTemperature("lead", {
+        objectif,
+        purchaseTime,
+        financingValidation,
+      });
+
+      // COLD leads are not sent to the CRM — kept for nurturing
+      if (temperature === "COLD") {
+        // TODO: Envoyer vers l'outil de nurturing (Brevo, Mailchimp, etc.)
+        console.info("[COLD LEAD] Not sent to CRM:", {
+          nom,
+          prenom,
+          email,
+          telephone,
+          objectif,
+          purchaseTime,
+          financingValidation,
+        });
+        return NextResponse.json({ ok: true, temperature });
+      }
+
+      const normalizedAppointmentDate = appointmentDate
+        ? new Date(appointmentDate).toISOString()
+        : undefined;
+
       const greenCityPayload: GreenCityLeadPayload = {
         firstName: prenom || nom.split(" ")[0] || nom,
         lastName: nom,
@@ -179,9 +235,10 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
         objective: mapObjective(objectif),
         purchaseTime: mapPurchaseTime(purchaseTime),
         financingValidation: mapFinancingValidation(financingValidation),
-        appointmentDate: appointmentDate || undefined,
+        appointmentDate: normalizedAppointmentDate,
         comment: message || undefined,
         residences,
+        temperature,
       };
 
       // Send to GreenCity API
@@ -189,6 +246,7 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
 
       return NextResponse.json({
         leadId: result.id,
+        temperature,
       });
     } catch (error) {
       console.error("Error creating lead:", error);
@@ -226,9 +284,11 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
       }
 
       const dateValue = new Date(appointmentDate);
+      const [h, m] = appointmentTime.split(":").map(Number);
+      dateValue.setHours(h, m, 0, 0);
       const formattedDate = Number.isNaN(dateValue.getTime())
         ? undefined
-        : dateValue.toISOString().split("T")[0];
+        : dateValue.toISOString();
 
       const residences = await resolveResidenceIds({
         defaultResidenceName: options.defaultResidenceName,
@@ -240,10 +300,9 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
         lastName: contact.name,
         email: contact.email,
         phoneMobile: contact.phone,
-        appointmentDate: formattedDate
-          ? `${formattedDate} ${appointmentTime}`
-          : undefined,
+        appointmentDate: formattedDate,
         residences,
+        temperature: "HOT",
       };
 
       const result = await createGreenCityLead(greenCityPayload);

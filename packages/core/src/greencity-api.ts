@@ -5,6 +5,7 @@
 export type GreenCityObjective = "PRINCIPAL_RESIDENCE" | "INVEST" | "RENTAL" | "LAND";
 export type PurchaseTime = "NOW" | "6_MONTHS";
 export type FinancingValidation = "YES" | "NO" | "IN_PROGRESS";
+export type LeadTemperature = "HOT" | "LUKEWARM" | "COLD";
 export type GreenCityLeadState =
   | "NEW"
   | "DISCOVERY_CALL"
@@ -24,6 +25,7 @@ export interface GreenCityLeadPayload {
   appointmentDate?: string;
   comment?: string;
   residences?: number[];
+  temperature?: LeadTemperature;
 }
 
 export interface GreenCityLead {

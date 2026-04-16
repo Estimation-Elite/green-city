@@ -19,7 +19,7 @@ const points = [
   {
     icon: Banknote,
     title: "Aides à l'accession",
-    text: "Bénéficiez du Prêt à Taux Zéro (PTZ) pour financer votre résidence principale, et profitez de frais de notaire réduits dans le neuf.",
+    text: "Bénéficiez du Prêt à Taux Zéro (PTZ) pour financer votre résidence principale, et profitez de frais de notaire réduits dans le neuf — deux avantages clés de l'immobilier neuf pour optimiser votre budget.",
   },
 ];
 

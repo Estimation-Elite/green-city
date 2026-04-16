@@ -170,7 +170,7 @@ export function VisitWizard({
             const minDate = new Date(today);
             minDate.setDate(today.getDate() + 3);
             minDate.setHours(0, 0, 0, 0);
-            return date < minDate || date.getDay() === 0;
+            return date < minDate || date.getDay() === 0 || date.getDay() === 6;
           }}
         />
       </div>
@@ -179,6 +179,7 @@ export function VisitWizard({
 
   const renderStep_Time = () => {
     const timeSlots = [
+      "08:30",
       "09:00",
       "09:30",
       "10:00",
@@ -187,6 +188,8 @@ export function VisitWizard({
       "11:30",
       "12:00",
       "12:30",
+      "13:00",
+      "13:30",
       "14:00",
       "14:30",
       "15:00",
@@ -196,6 +199,10 @@ export function VisitWizard({
       "17:00",
       "17:30",
       "18:00",
+      "18:30",
+      "19:00",
+      "19:30",
+      "20:00",
     ];
 
     return (

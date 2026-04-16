@@ -24,9 +24,14 @@ export function Hero() {
 
       <div className="relative z-10 container mx-auto max-w-7xl px-4 py-20">
         <div className="max-w-2xl text-white space-y-6">
-          <span className="inline-block bg-accent text-white text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
-            Toulouse — Faubourg Malepère
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-block bg-accent text-white text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
+              Toulouse — Faubourg Malepère
+            </span>
+            <span className="inline-block bg-primary text-white text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
+              Prix maîtrisé
+            </span>
+          </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
             Révélation :<br />

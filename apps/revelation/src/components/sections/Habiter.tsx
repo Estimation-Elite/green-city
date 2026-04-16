@@ -1,4 +1,4 @@
-import { Sun, ShieldCheck, Banknote, TreePine } from "lucide-react";
+import { Sun, ShieldCheck, Banknote, TreePine, BadgeEuro } from "lucide-react";
 
 const points = [
   {
@@ -20,6 +20,11 @@ const points = [
     icon: Banknote,
     title: "Aides à l'accession",
     text: "Bénéficiez du Prêt à Taux Zéro (PTZ) pour financer votre résidence principale, et profitez de frais de notaire réduits dans le neuf.",
+  },
+  {
+    icon: BadgeEuro,
+    title: "Prix maîtrisé",
+    text: "Des prix étudiés pour rendre l'accession à la propriété accessible, dans un quartier en plein essor offrant un excellent rapport qualité-emplacement.",
   },
 ];
 
