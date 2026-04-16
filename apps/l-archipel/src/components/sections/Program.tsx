@@ -41,8 +41,7 @@ export function Program() {
               confèrent au programme son identité architecturale distinctive.
             </p>
             <p className="text-foreground/85 leading-relaxed">
-              Conçu par <strong>EMPAN Architectes</strong> pour GreenCity Immobilier
-              et Acte-S Promotion, L&apos;Archipel allie qualité de construction
+              Conçu par <strong>EMPAN Architectes</strong> pour GreenCity Immobilier, L&apos;Archipel allie qualité de construction
               certifiée NF Habitat et respect de l&apos;environnement (RE 2020 seuil 2025).
             </p>
           </div>

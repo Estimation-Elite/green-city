@@ -7,8 +7,6 @@ export const siteConfig = {
 export const headerData = {
   projectLogoSrc: "/images/greencity-logo.png",
   projectLogoAlt: "GreenCity Immobilier",
-  partnerLogoSrc: "/images/acte-s-logo-black.svg",
-  partnerLogoAlt: "ACTE-S",
   navLinks: [
     { label: "Programme", href: "#programme" },
     { label: "Habiter", href: "#habiter" },
@@ -90,10 +88,8 @@ export const availableLots = 17;
 
 export const footerData = {
   projectName: "L'Archipel",
-  developerName: "ACTE-S & GreenCity Immobilier",
+  developerName: "GreenCity Immobilier",
   logoSrc: "/images/greencity-logo-footer.png",
-  partnerLogoSrc: "/images/acte-s-logo.svg",
-  partnerLogoAlt: "ACTE-S",
   // phone: "0 805 258 805",
   email: "",
   // address: "178 Rue Edmond Rostand, 31200 Toulouse",

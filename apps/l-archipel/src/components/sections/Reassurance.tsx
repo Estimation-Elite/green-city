@@ -40,7 +40,7 @@ export function Reassurance() {
             Un promoteur de confiance
           </h2>
           <p className="text-muted mt-3 max-w-2xl mx-auto">
-            GreenCity Immobilier, en partenariat avec Acte-S Promotion :
+            GreenCity Immobilier :
             28 Pyramides d&apos;or et d&apos;argent depuis 2011, avec une exigence
             constante de qualité, d&apos;innovation et de durabilité.
           </p>
