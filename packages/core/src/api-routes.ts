@@ -8,6 +8,7 @@ import {
   type FinancingValidation,
   type LeadTemperature,
 } from "./greencity-api";
+import { addContactToBrevoList, markContactAsRdvPris } from "./brevo";
 
 // ────────────────────────────────────────────
 // Types
@@ -40,10 +41,12 @@ interface LeadPayload {
 
 interface LeadHandlerOptions {
   defaultResidenceName?: string;
+  nurturingListId?: number;
 }
 
 interface RdvHandlerOptions {
   defaultResidenceName?: string;
+  nurturingListId?: number;
 }
 
 // ────────────────────────────────────────────
@@ -208,18 +211,42 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
         financingValidation,
       });
 
-      // COLD leads are not sent to the CRM — kept for nurturing
+      // COLD leads are not sent to the CRM — pushed to Brevo for nurturing.
       if (temperature === "COLD") {
-        // TODO: Envoyer vers l'outil de nurturing (Brevo, Mailchimp, etc.)
-        console.info("[COLD LEAD] Not sent to CRM:", {
-          nom,
-          prenom,
-          email,
-          telephone,
-          objectif,
-          purchaseTime,
-          financingValidation,
-        });
+        const apiKey = process.env.BREVO_API_KEY;
+        const listId =
+          options.nurturingListId ??
+          (process.env.BREVO_NURTURING_LIST_ID
+            ? Number(process.env.BREVO_NURTURING_LIST_ID)
+            : undefined);
+
+        if (apiKey && listId) {
+          try {
+            const result = await addContactToBrevoList(
+              {
+                email,
+                firstName: prenom || nom.split(" ")[0] || nom,
+                lastName: nom,
+                phone: telephone,
+              },
+              listId,
+              apiKey,
+            );
+            if (!result.ok) {
+              console.error(
+                `[COLD LEAD] Brevo upsert failed (${result.status}):`,
+                result.body,
+              );
+            }
+          } catch (err) {
+            console.error("[COLD LEAD] Brevo upsert threw:", err);
+          }
+        } else {
+          console.info(
+            "[COLD LEAD] Brevo not configured (BREVO_API_KEY / BREVO_NURTURING_LIST_ID missing) — skipping nurturing push.",
+          );
+        }
+
         return NextResponse.json({ ok: true, temperature });
       }
 
@@ -306,6 +333,20 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
       };
 
       const result = await createGreenCityLead(greenCityPayload);
+
+      // Mark RDV_PRIS=true on the Brevo contact (if it exists) to exit the
+      // nurturing workflow. Never creates a contact: a 404 is silent.
+      const apiKey = process.env.BREVO_API_KEY;
+      if (apiKey && options.nurturingListId) {
+        try {
+          const brevoResult = await markContactAsRdvPris(contact.email, apiKey);
+          if (!brevoResult.updated && brevoResult.status === 404) {
+            console.info(`[RDV] Contact unknown in Brevo (${contact.email})`);
+          }
+        } catch (err) {
+          console.error("[RDV] Brevo update threw:", err);
+        }
+      }
 
       return NextResponse.json({ ok: true, leadId: result.id });
     } catch (error) {
