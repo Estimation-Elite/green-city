@@ -210,7 +210,7 @@ export function VisitWizard({
         <div className="px-6 py-4 border-b border-gray-200 flex items-center">
           <button
             onClick={handleBack}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600 -ml-2"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600 -ml-2 z-10"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -231,11 +231,10 @@ export function VisitWizard({
                   updateFormData("appointmentTime", time);
                   handleNext();
                 }}
-                className={`w-full p-4 rounded-lg transition-all text-center font-medium ${
-                  formData.appointmentTime === time
-                    ? "bg-brand-primary/20 text-brand-primary border border-brand-primary"
-                    : "bg-brand-primary/5 text-gray-900 hover:bg-brand-primary/10 border border-transparent"
-                }`}
+                className={`w-full p-4 rounded-lg transition-all text-center font-medium ${formData.appointmentTime === time
+                  ? "bg-brand-primary/20 text-brand-primary border border-brand-primary"
+                  : "bg-brand-primary/5 text-gray-900 hover:bg-brand-primary/10 border border-transparent"
+                  }`}
               >
                 {time}
               </button>
@@ -251,7 +250,7 @@ export function VisitWizard({
       <div className="px-6 py-4 border-b border-gray-200 flex items-center">
         <button
           onClick={handleBack}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600 -ml-2"
+          className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600 -ml-2  z-10"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
