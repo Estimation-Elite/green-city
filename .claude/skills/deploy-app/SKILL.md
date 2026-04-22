@@ -1,100 +1,129 @@
 ---
 name: deploy-app
-description: Build and deploy any app from the monorepo to the green-city IONOS VPS server
+description: Build and deploy one or more apps from the monorepo to the green-city IONOS VPS server
 disable-model-invocation: true
-argument-hint: "[app-name]"
-allowed-tools: Bash(docker *), Bash(sshpass *), Bash(source *), Read
+argument-hint: "[app-name]..."
+allowed-tools: Bash(docker *), Bash(sshpass *), Bash(source *), Bash(rm *), Bash(ls *), Bash(md5sum *), Read
 ---
 
-# Deploy an app to the server
+# Deploy one or more apps to the server
 
-Deploy the app `$ARGUMENTS` to the green-city IONOS VPS server.
+Deploy the apps passed in `$ARGUMENTS` to the green-city IONOS VPS server.
+
+`$ARGUMENTS` is a **whitespace-separated list of app names**. Examples:
+- `/deploy-app l-archipel` → single app
+- `/deploy-app l-archipel revelation home-spirit-2` → three apps
+
+Throughout this skill, `<APP>` is a placeholder for the current app being processed. When there are multiple apps, you MUST loop through them and run the full deployment flow (steps 2–8) for each one.
 
 ## App → Server mapping
 
-All apps are deployed to the same server.
+All apps are deployed to the same server (host `217.160.246.17`).
 
-| App             | Host           | Remote directory     |
-| --------------- | -------------- | -------------------- |
-| l-archipel      | 217.160.246.17 | /opt/l-archipel      |
-| park-view-old   | 217.160.246.17 | /opt/park-view-OLD   |
-| park-view-2-old | 217.160.246.17 | /opt/park-view-2-OLD |
-| revelation      | 217.160.246.17 | /opt/revelation      |
-| roof-garden     | 217.160.246.17 | /opt/roof-garden     |
-| park-view       | 217.160.246.17 | /opt/park-view       |
-| home-spirit-2   | 217.160.246.17 | /opt/home-spirit-2   |
+| App             | Remote directory     |
+| --------------- | -------------------- |
+| l-archipel      | /opt/l-archipel      |
+| park-view-old   | /opt/park-view-OLD   |
+| park-view-2-old | /opt/park-view-2-OLD |
+| revelation      | /opt/revelation      |
+| roof-garden     | /opt/roof-garden     |
+| park-view       | /opt/park-view       |
+| home-spirit-2   | /opt/home-spirit-2   |
+
+### Name normalization
+
+Users often drop the hyphen before trailing digits. Normalize before validating:
+
+| User wrote       | Canonical app name |
+| ---------------- | ------------------ |
+| `home-spirit2`   | `home-spirit-2`    |
+| `park-view2`     | `park-view`        *(or ask if unclear)* |
+| `parkview-old`   | `park-view-old`    |
+| `parkview2-old`  | `park-view-2-old`  |
+
+If a name is ambiguous after normalization (e.g. user wrote `park-view2` — did they mean `park-view` or `park-view-2-old`?), ask the user before proceeding.
 
 ## Credentials
 
-Server credentials are stored in the `.server` file at the repo root. It contains `HOTE` (host IP), `USER`, and `MDP` (password). Read it to get the credentials. NEVER display passwords to the user.
+Server credentials are stored in the `.server` file at the repo root. It contains `HOTE` (host IP), `USER`, and `MDP` (password). Read it to get the credentials. NEVER display the password to the user.
 
-## Deployment steps
+## Global rules
 
-Before starting, confirm with the user which app to deploy if `$ARGUMENTS` is empty or ambiguous.
+- **Build sequentially, never in parallel.** Running multiple `docker build` at once saturates CPU/disk and can cause image-tag races. Complete one app's full flow (build → transfer → restart → verify) before starting the next.
+- **Always transfer the local `.env`.** The copy on the server may be stale (changes to API keys, GTM IDs, etc. made locally). Even if the user doesn't mention `.env`, re-transfer it as part of every deploy.
+- **Track progress with a todo list** when deploying more than one app, so the user sees which apps are done / in-flight / pending.
+
+## Deployment steps (run for each `<APP>`)
 
 ### Step 1: Validate
 
-- Verify `$ARGUMENTS` is a valid app name from the table above.
+- Normalize each user-provided name against the table above.
+- If `$ARGUMENTS` is empty, ask the user which app(s) to deploy.
 - Read the `.server` file to get `HOTE` and `MDP`.
-- Verify that `apps/$ARGUMENTS/Dockerfile` exists. If not, create one by copying `apps/roof-garden/Dockerfile` and replacing all occurrences of `roof-garden` with `$ARGUMENTS`.
+- Verify that `apps/<APP>/Dockerfile` exists. If not, create one by copying `apps/roof-garden/Dockerfile` and replacing all occurrences of `roof-garden` with `<APP>`.
+- Verify that `apps/<APP>/.env` exists (it usually does — it carries `GREENCITY_API_KEY`, `GREENCITY_API_SECRET`, `GTM_ID`, etc.).
 
 ### Step 2: Build the Docker image
 
 Run from the **repo root**:
 
 ```bash
-docker build -f apps/$ARGUMENTS/Dockerfile -t $ARGUMENTS:latest .
+docker build -f apps/<APP>/Dockerfile -t <APP>:latest .
 ```
 
 ### Step 3: Export the image
 
 ```bash
-docker save $ARGUMENTS:latest | gzip > $ARGUMENTS.tar.gz
+docker save <APP>:latest | gzip > <APP>.tar.gz
 ```
 
-### Step 4: Transfer to the server
+### Step 4: Transfer `.env` + image to the server
+
+Always transfer the local `.env` (if it exists) to ensure the server runs with the latest config:
 
 ```bash
-sshpass -p '<MDP>' scp $ARGUMENTS.tar.gz root@<HOTE>:/opt/$ARGUMENTS/
+sshpass -p '<MDP>' scp apps/<APP>/.env root@<HOTE>:/opt/<APP>/.env
+sshpass -p '<MDP>' scp <APP>.tar.gz      root@<HOTE>:/opt/<APP>/
 ```
 
-### Step 5: Update .env on the server
+If the app has no local `.env` file, skip the first line.
 
-If the app has an `.env` file, transfer it:
-
-```bash
-sshpass -p '<MDP>' scp apps/$ARGUMENTS/.env root@<HOTE>:/opt/$ARGUMENTS/.env
-```
-
-If the app has no `.env` file, skip this step.
-
-### Step 6: Load and restart on the server
+### Step 5: Load and restart on the server
 
 ```bash
 sshpass -p '<MDP>' ssh root@<HOTE> \
-  "cd /opt/$ARGUMENTS && docker load < $ARGUMENTS.tar.gz && rm $ARGUMENTS.tar.gz && docker compose up -d && docker image prune -f"
+  "cd /opt/<APP> && docker load < <APP>.tar.gz && rm <APP>.tar.gz && docker compose up -d && docker image prune -f"
 ```
 
-### Step 7: Verify
+### Step 6: Verify
 
 ```bash
-sshpass -p '<MDP>' ssh root@<HOTE> "docker ps --filter name=$ARGUMENTS --format '{{.Status}}'"
+sshpass -p '<MDP>' ssh root@<HOTE> "docker ps --filter name=<APP> --format '{{.Status}}'"
 ```
 
 Report the container status to the user.
 
-### Step 8: Cleanup
+### Step 7: Cleanup
 
 Remove the local tar.gz file:
 
 ```bash
-rm $ARGUMENTS.tar.gz
+rm <APP>.tar.gz
 ```
+
+## Final report
+
+When all apps are done, print a summary table:
+
+| App | Status |
+|---|---|
+| \<APP\> | Up |
+| ... | ... |
 
 ## Important notes
 
 - Always build from the **repo root**, not from the app directory.
-- The build can take a few minutes — inform the user.
-- If the build fails, show the error and stop. Do NOT transfer a broken image.
+- The build can take a few minutes per app — inform the user.
+- If a build fails, show the error and **stop the whole sequence**. Do NOT continue to the next app and do NOT transfer a broken image.
 - If disk space is low on the server, run cleanup: `docker system prune -a -f && docker builder prune -a -f`
-- If the user only wants to update the `.env` (no rebuild), use: `sshpass -p '<MDP>' scp apps/$ARGUMENTS/.env root@<HOTE>:/opt/$ARGUMENTS/.env && sshpass -p '<MDP>' ssh root@<HOTE> "cd /opt/$ARGUMENTS && docker compose restart app"`
+- If the user only wants to update the `.env` (no rebuild), use: `sshpass -p '<MDP>' scp apps/<APP>/.env root@<HOTE>:/opt/<APP>/.env && sshpass -p '<MDP>' ssh root@<HOTE> "cd /opt/<APP> && docker compose restart app"`
