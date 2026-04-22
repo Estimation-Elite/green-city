@@ -116,7 +116,7 @@ function CallbackForm({
             email: form.email.trim(),
             phone: form.telephone.trim(),
           },
-          appointmentDate: form.appointmentDate?.toISOString() ?? null,
+          appointmentDate: form.appointmentDate ? format(form.appointmentDate, "yyyy-MM-dd") : null,
           appointmentTime: form.appointmentTime,
           message: form.message.trim() || undefined,
           residenceRef,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { fromZonedTime } from "date-fns-tz";
 import {
   createGreenCityLead,
   findGreenCityResidenceIdByName,
@@ -15,6 +16,10 @@ import {
 } from "./brevo";
 import { normalizePhoneE164 } from "./phone";
 
+const APPOINTMENT_TIMEZONE = "Europe/Paris";
+const APPOINTMENT_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const APPOINTMENT_TIME_REGEX = /^\d{2}:\d{2}$/;
+
 // ────────────────────────────────────────────
 // Types
 // ────────────────────────────────────────────
@@ -26,7 +31,7 @@ interface VisitPayload {
     email: string;
     phone: string;
   };
-  appointmentDate: string | Date | null;
+  appointmentDate: string | null;
   appointmentTime: string | null;
   message?: string;
   residenceRef?: string;
@@ -229,6 +234,7 @@ function fireRdvConfirmation(params: {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: APPOINTMENT_TIMEZONE,
   }).format(params.appointmentDate);
   const timeLabel = `${String(params.hour).padStart(2, "0")}:${String(params.minute).padStart(2, "0")}`;
 
@@ -453,6 +459,16 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
         );
       }
 
+      if (
+        !APPOINTMENT_DATE_REGEX.test(appointmentDate) ||
+        !APPOINTMENT_TIME_REGEX.test(appointmentTime)
+      ) {
+        return NextResponse.json(
+          { error: "Date ou heure de rendez-vous invalide." },
+          { status: 400 },
+        );
+      }
+
       const normalizedPhone = normalizePhoneE164(contact.phone);
       if (!normalizedPhone) {
         return NextResponse.json(
@@ -464,9 +480,11 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
         );
       }
 
-      const dateValue = new Date(appointmentDate);
       const [h, m] = appointmentTime.split(":").map(Number);
-      dateValue.setHours(h, m, 0, 0);
+      const dateValue = fromZonedTime(
+        `${appointmentDate}T${appointmentTime}:00`,
+        APPOINTMENT_TIMEZONE,
+      );
       const formattedDate = Number.isNaN(dateValue.getTime())
         ? undefined
         : dateValue.toISOString();

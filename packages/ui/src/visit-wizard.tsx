@@ -54,7 +54,7 @@ const defaultCreateVisit = async (
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       ...formData,
-      appointmentDate: formData.appointmentDate?.toISOString() ?? null,
+      appointmentDate: formData.appointmentDate ? format(formData.appointmentDate, "yyyy-MM-dd") : null,
       projectAddress,
       utmSource,
     }),
