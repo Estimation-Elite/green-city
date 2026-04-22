@@ -2,6 +2,8 @@
 // Used by leadHandler to push COLD leads into a Brevo list that triggers an
 // email automation workflow.
 
+import { normalizePhoneE164 } from "./phone";
+
 const BREVO_API_BASE = "https://api.brevo.com/v3";
 const RETRY_DELAYS_MS = [200, 600]; // 2 retries with exponential-ish backoff
 
@@ -26,17 +28,6 @@ async function fetchWithRetry(
     }
   }
   throw lastError ?? new Error("fetchWithRetry: exhausted retries");
-}
-
-// Brevo's SMS attribute requires E.164 (international) format. We normalize
-// French numbers (10 digits starting with 0) to +33XXXXXXXXX. Anything else
-// is dropped to avoid a 400 from Brevo that would prevent contact creation.
-function normalizePhoneE164(phone: string): string | null {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.startsWith("33") && digits.length === 11) return `+${digits}`;
-  if (digits.startsWith("0") && digits.length === 10) return `+33${digits.slice(1)}`;
-  if (phone.startsWith("+") && digits.length >= 8) return `+${digits}`;
-  return null;
 }
 
 export interface BrevoContactPayload {
@@ -139,4 +130,65 @@ export async function markContactAsRdvPris(
   }
 
   return { updated: true, status: res.status };
+}
+
+export interface SendTransacEmailPayload {
+  to: Array<{ email: string; name?: string }>;
+  templateId: number;
+  params?: Record<string, string | number | boolean>;
+}
+
+export interface SendTransacEmailResult {
+  ok: boolean;
+  status: number;
+  messageId?: string;
+}
+
+// Send a transactional email via a Brevo template. Never throws: callers
+// typically fire-and-forget after the primary action (RDV / lead creation)
+// has already succeeded, so a Brevo outage must not surface as a 500.
+export async function sendBrevoTransactionalEmail(
+  payload: SendTransacEmailPayload,
+  apiKey: string,
+): Promise<SendTransacEmailResult> {
+  try {
+    const res = await fetchWithRetry(`${BREVO_API_BASE}/smtp/email`, {
+      method: "POST",
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      // TODO(Sentry): Sentry.captureMessage("brevo.transac.failed", { level: "error", extra: { templateId: payload.templateId, status: res.status, body } })
+      console.error(
+        JSON.stringify({
+          event: "brevo.transac.failed",
+          templateId: payload.templateId,
+          to: payload.to.map((t) => t.email),
+          status: res.status,
+          body,
+        }),
+      );
+      return { ok: false, status: res.status };
+    }
+
+    const data = (await res.json().catch(() => ({}))) as { messageId?: string };
+    return { ok: true, status: res.status, messageId: data.messageId };
+  } catch (err) {
+    // TODO(Sentry): Sentry.captureException(err, { extra: { templateId: payload.templateId, phase: "brevo.transac.send" } })
+    console.error(
+      JSON.stringify({
+        event: "brevo.transac.threw",
+        templateId: payload.templateId,
+        to: payload.to.map((t) => t.email),
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+    return { ok: false, status: 0 };
+  }
 }

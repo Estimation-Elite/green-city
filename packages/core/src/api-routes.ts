@@ -8,7 +8,12 @@ import {
   type FinancingValidation,
   type LeadTemperature,
 } from "./greencity-api";
-import { addContactToBrevoList, markContactAsRdvPris } from "./brevo";
+import {
+  addContactToBrevoList,
+  markContactAsRdvPris,
+  sendBrevoTransactionalEmail,
+} from "./brevo";
+import { normalizePhoneE164 } from "./phone";
 
 // ────────────────────────────────────────────
 // Types
@@ -39,6 +44,7 @@ interface LeadPayload {
   appointmentDate?: string;
   residenceRef?: string;
   residenceId?: string;
+  formType?: "brochure" | "callback";
 }
 
 interface LeadHandlerOptions {
@@ -177,6 +183,70 @@ async function resolveResidenceIds({
   return [resolvedResidenceId];
 }
 
+// Fire-and-forget transactional email helpers. They never throw (the Brevo
+// client returns a result object on failure) and they swallow misconfiguration
+// (missing env var, missing apiKey) silently — the primary action is already
+// committed by the time they're called.
+
+function fireBrochureAcknowledgment(params: {
+  email: string;
+  name: string;
+  firstName: string;
+  programme: string;
+}) {
+  const apiKey = process.env.BREVO_API_KEY;
+  const templateId = Number(process.env.BREVO_TEMPLATE_ID_LEAD_ACKNOWLEDGMENT);
+  if (!apiKey || !templateId) return;
+
+  void sendBrevoTransactionalEmail(
+    {
+      to: [{ email: params.email, name: params.name }],
+      templateId,
+      params: {
+        FIRSTNAME: params.firstName,
+        PROGRAMME: params.programme,
+      },
+    },
+    apiKey,
+  );
+}
+
+function fireRdvConfirmation(params: {
+  email: string;
+  name: string;
+  firstName: string;
+  programme: string;
+  appointmentDate: Date;
+  hour: number;
+  minute: number;
+}) {
+  const apiKey = process.env.BREVO_API_KEY;
+  const templateId = Number(process.env.BREVO_TEMPLATE_ID_RDV_CONFIRMATION);
+  if (!apiKey || !templateId) return;
+
+  const dateLabel = new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(params.appointmentDate);
+  const timeLabel = `${String(params.hour).padStart(2, "0")}:${String(params.minute).padStart(2, "0")}`;
+
+  void sendBrevoTransactionalEmail(
+    {
+      to: [{ email: params.email, name: params.name }],
+      templateId,
+      params: {
+        FIRSTNAME: params.firstName,
+        PROGRAMME: params.programme,
+        APPOINTMENT_DATE: dateLabel,
+        APPOINTMENT_TIME: timeLabel,
+      },
+    },
+    apiKey,
+  );
+}
+
 export function createLeadHandler(options: LeadHandlerOptions = {}) {
   return async function leadHandler(request: NextRequest) {
     try {
@@ -193,11 +263,23 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
         appointmentDate,
         residenceRef,
         residenceId,
+        formType,
       } = body;
 
       if (!nom || !email || !telephone) {
         return NextResponse.json(
           { error: "Tous les champs requis ne sont pas renseignés." },
+          { status: 400 },
+        );
+      }
+
+      const normalizedPhone = normalizePhoneE164(telephone);
+      if (!normalizedPhone) {
+        return NextResponse.json(
+          {
+            error:
+              "Le numéro de téléphone renseigné est invalide. Merci d'indiquer un numéro français (ex. 06 12 34 56 78) ou incluant l'indicatif international (ex. +33 6 12 34 56 78).",
+          },
           { status: 400 },
         );
       }
@@ -284,6 +366,15 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
           );
         }
 
+        if (formType === "brochure") {
+          fireBrochureAcknowledgment({
+            email,
+            name: nom,
+            firstName: prenom || nom.split(" ")[0] || nom,
+            programme: options.defaultResidenceName ?? "",
+          });
+        }
+
         return NextResponse.json({ ok: true, temperature });
       }
 
@@ -295,7 +386,7 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
         firstName: prenom || nom.split(" ")[0] || nom,
         lastName: nom,
         email,
-        phoneMobile: telephone,
+        phoneMobile: normalizedPhone,
         objective: mapObjective(objectif),
         purchaseTime: mapPurchaseTime(purchaseTime),
         financingValidation: mapFinancingValidation(financingValidation),
@@ -307,6 +398,15 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
 
       // Send to GreenCity API
       const result = await createGreenCityLead(greenCityPayload);
+
+      if (formType === "brochure") {
+        fireBrochureAcknowledgment({
+          email,
+          name: nom,
+          firstName: prenom || nom.split(" ")[0] || nom,
+          programme: options.defaultResidenceName ?? "",
+        });
+      }
 
       return NextResponse.json({
         leadId: result.id,
@@ -353,6 +453,17 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
         );
       }
 
+      const normalizedPhone = normalizePhoneE164(contact.phone);
+      if (!normalizedPhone) {
+        return NextResponse.json(
+          {
+            error:
+              "Le numéro de téléphone renseigné est invalide. Merci d'indiquer un numéro français (ex. 06 12 34 56 78) ou incluant l'indicatif international (ex. +33 6 12 34 56 78).",
+          },
+          { status: 400 },
+        );
+      }
+
       const dateValue = new Date(appointmentDate);
       const [h, m] = appointmentTime.split(":").map(Number);
       dateValue.setHours(h, m, 0, 0);
@@ -370,7 +481,7 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
           contact.firstName || contact.name.split(" ")[0] || contact.name,
         lastName: contact.name,
         email: contact.email,
-        phoneMobile: contact.phone,
+        phoneMobile: normalizedPhone,
         appointmentDate: formattedDate,
         comment: message || undefined,
         residences,
@@ -420,6 +531,19 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
             { status: 500 },
           );
         }
+      }
+
+      if (!Number.isNaN(dateValue.getTime())) {
+        fireRdvConfirmation({
+          email: contact.email,
+          name: contact.name,
+          firstName:
+            contact.firstName || contact.name.split(" ")[0] || contact.name,
+          programme: options.defaultResidenceName ?? "",
+          appointmentDate: dateValue,
+          hour: h,
+          minute: m,
+        });
       }
 
       return NextResponse.json({ ok: true, leadId: result.id });
