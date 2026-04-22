@@ -3,6 +3,30 @@
 // email automation workflow.
 
 const BREVO_API_BASE = "https://api.brevo.com/v3";
+const RETRY_DELAYS_MS = [200, 600]; // 2 retries with exponential-ish backoff
+
+// Retry on transient failures only: 5xx (Brevo down) and 429 (rate limit).
+// 4xx errors are permanent (bad payload, bad key) — retrying would only delay
+// the inevitable and waste quota.
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+): Promise<Response> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    try {
+      const res = await fetch(url, init);
+      const transient = res.status === 429 || res.status >= 500;
+      if (!transient || attempt === RETRY_DELAYS_MS.length) return res;
+      await new Promise((r) => setTimeout(r, RETRY_DELAYS_MS[attempt]));
+    } catch (err) {
+      lastError = err;
+      if (attempt === RETRY_DELAYS_MS.length) throw err;
+      await new Promise((r) => setTimeout(r, RETRY_DELAYS_MS[attempt]));
+    }
+  }
+  throw lastError ?? new Error("fetchWithRetry: exhausted retries");
+}
 
 // Brevo's SMS attribute requires E.164 (international) format. We normalize
 // French numbers (10 digits starting with 0) to +33XXXXXXXXX. Anything else
@@ -42,7 +66,7 @@ export async function addContactToBrevoList(
     ...contact.attributes,
   };
 
-  const res = await fetch(`${BREVO_API_BASE}/contacts`, {
+  const res = await fetchWithRetry(`${BREVO_API_BASE}/contacts`, {
     method: "POST",
     headers: {
       "api-key": apiKey,
@@ -57,7 +81,19 @@ export async function addContactToBrevoList(
     }),
   });
 
-  const body = await res.json().catch(() => undefined);
+  // Read as text first (never throws), then attempt JSON. Preserves the raw
+  // response when Brevo returns non-JSON (HTML from an upstream proxy, empty
+  // body on 201, etc.) — otherwise we'd log `body: undefined` and lose the
+  // diagnostic content.
+  const rawBody = await res.text().catch(() => "");
+  let body: unknown = rawBody || undefined;
+  try {
+    if (rawBody) body = JSON.parse(rawBody);
+  } catch {
+    // keep rawBody as-is
+  }
+  console.log("body:", body);
+
 
   return { ok: res.ok, status: res.status, body };
 }
@@ -76,7 +112,7 @@ export async function markContactAsRdvPris(
 ): Promise<MarkContactResult> {
   const identifier = encodeURIComponent(email.trim().toLowerCase());
 
-  const res = await fetch(`${BREVO_API_BASE}/contacts/${identifier}`, {
+  const res = await fetchWithRetry(`${BREVO_API_BASE}/contacts/${identifier}`, {
     method: "PUT",
     headers: {
       "api-key": apiKey,
@@ -92,7 +128,15 @@ export async function markContactAsRdvPris(
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    console.error(`[BREVO] PUT /contacts/${email} failed (${res.status}): ${body}`);
+    // TODO(Sentry): Sentry.captureMessage("brevo.rdv.update.failed", { level: "error", extra: { email, status: res.status, body } })
+    console.error(
+      JSON.stringify({
+        event: "brevo.rdv.update.failed",
+        email,
+        status: res.status,
+        body,
+      }),
+    );
     return { updated: false, status: res.status };
   }
 

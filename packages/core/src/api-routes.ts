@@ -103,6 +103,7 @@ function computeTemperature(
   if (formType === "rdv") return "HOT";
 
   const hasValidFinancing = payload.financingValidation === "OUI";
+  const hasMaybeFinancing = payload.financingValidation === "EN_COURS";
   const hasShortTimeline =
     payload.purchaseTime === "IMMEDIAT" || payload.purchaseTime === "6_MOIS";
   const hasObjective = !!payload.objectif;
@@ -111,7 +112,7 @@ function computeTemperature(
   if (hasValidFinancing && hasShortTimeline) return "HOT";
 
   // Objectif défini mais financement flou → LUKEWARM
-  if (hasObjective) return "LUKEWARM";
+  if (hasObjective && hasMaybeFinancing) return "LUKEWARM";
 
   // Tout le reste → COLD
   return "COLD";
@@ -211,6 +212,8 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
         financingValidation,
       });
 
+      console.log("temperature:", temperature);
+
       // COLD leads are not sent to the CRM — pushed to Brevo for nurturing.
       if (temperature === "COLD") {
         const apiKey = process.env.BREVO_API_KEY;
@@ -220,30 +223,67 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
             ? Number(process.env.BREVO_NURTURING_LIST_ID)
             : undefined);
 
-        if (apiKey && listId) {
-          try {
-            const result = await addContactToBrevoList(
-              {
+        console.log("apiKey:", apiKey);
+        console.log("listId:", listId);
+
+        const coldLeadErrorMessage =
+          "Impossible d'enregistrer votre demande pour le moment. Merci de réessayer dans quelques instants.";
+
+        if (!apiKey || !listId) {
+          // TODO(Sentry): Sentry.captureMessage("brevo.config.missing", { level: "error" }) — firing at runtime means the deploy is misconfigured
+          console.error(
+            JSON.stringify({
+              event: "brevo.config.missing",
+              hasApiKey: Boolean(apiKey),
+              hasListId: Boolean(listId),
+            }),
+          );
+          return NextResponse.json(
+            { error: coldLeadErrorMessage },
+            { status: 500 },
+          );
+        }
+
+        try {
+          const result = await addContactToBrevoList(
+            {
+              email,
+              firstName: prenom || nom.split(" ")[0] || nom,
+              lastName: nom,
+              phone: telephone,
+            },
+            listId,
+            apiKey,
+          );
+          if (!result.ok) {
+            // TODO(Sentry): Sentry.captureMessage("brevo.lead.upsert.failed", { level: "error", extra: { email, listId, status: result.status, body: result.body } })
+            console.error(
+              JSON.stringify({
+                event: "brevo.lead.upsert.failed",
                 email,
-                firstName: prenom || nom.split(" ")[0] || nom,
-                lastName: nom,
-                phone: telephone,
-              },
-              listId,
-              apiKey,
+                listId,
+                status: result.status,
+                body: result.body,
+              }),
             );
-            if (!result.ok) {
-              console.error(
-                `[COLD LEAD] Brevo upsert failed (${result.status}):`,
-                result.body,
-              );
-            }
-          } catch (err) {
-            console.error("[COLD LEAD] Brevo upsert threw:", err);
+            return NextResponse.json(
+              { error: coldLeadErrorMessage },
+              { status: 500 },
+            );
           }
-        } else {
-          console.info(
-            "[COLD LEAD] Brevo not configured (BREVO_API_KEY / BREVO_NURTURING_LIST_ID missing) — skipping nurturing push.",
+        } catch (err) {
+          // TODO(Sentry): Sentry.captureException(err, { extra: { email, listId, phase: "brevo.lead.upsert" } })
+          console.error(
+            JSON.stringify({
+              event: "brevo.lead.upsert.threw",
+              email,
+              listId,
+              error: err instanceof Error ? err.message : String(err),
+            }),
+          );
+          return NextResponse.json(
+            { error: coldLeadErrorMessage },
+            { status: 500 },
           );
         }
 
@@ -336,15 +376,44 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
 
       // Mark RDV_PRIS=true on the Brevo contact (if it exists) to exit the
       // nurturing workflow. Never creates a contact: a 404 is silent.
+      // The RDV is already saved in GreenCity at this point — on Brevo
+      // failure we surface an error whose copy confirms the RDV exists,
+      // so the user doesn't re-submit and create a duplicate.
+      const rdvBrevoErrorMessage =
+        "Votre rendez-vous a bien été enregistré, mais un problème technique est survenu. Notre équipe vous recontactera pour confirmation.";
       const apiKey = process.env.BREVO_API_KEY;
       if (apiKey && options.nurturingListId) {
         try {
           const brevoResult = await markContactAsRdvPris(contact.email, apiKey);
           if (!brevoResult.updated && brevoResult.status === 404) {
-            console.info(`[RDV] Contact unknown in Brevo (${contact.email})`);
+            // Normal: contact was never nurtured (HOT lead from the start). Info-only.
+            console.info(
+              JSON.stringify({
+                event: "brevo.rdv.contact.unknown",
+                email: contact.email,
+              }),
+            );
+          } else if (!brevoResult.updated) {
+            // Non-404 failure: already logged inside markContactAsRdvPris.
+            // TODO(Sentry): Sentry.captureMessage("brevo.rdv.update.failed", { level: "error", extra: { email: contact.email, status: brevoResult.status } })
+            return NextResponse.json(
+              { error: rdvBrevoErrorMessage, leadId: result.id },
+              { status: 500 },
+            );
           }
         } catch (err) {
-          console.error("[RDV] Brevo update threw:", err);
+          // TODO(Sentry): Sentry.captureException(err, { extra: { email: contact.email, phase: "brevo.rdv.update" } })
+          console.error(
+            JSON.stringify({
+              event: "brevo.rdv.update.threw",
+              email: contact.email,
+              error: err instanceof Error ? err.message : String(err),
+            }),
+          );
+          return NextResponse.json(
+            { error: rdvBrevoErrorMessage, leadId: result.id },
+            { status: 500 },
+          );
         }
       }
 
