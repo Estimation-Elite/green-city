@@ -92,8 +92,6 @@ export async function addContactToBrevoList(
   } catch {
     // keep rawBody as-is
   }
-  console.log("body:", body);
-
 
   return { ok: res.ok, status: res.status, body };
 }

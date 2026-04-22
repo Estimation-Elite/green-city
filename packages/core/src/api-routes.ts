@@ -23,6 +23,8 @@ interface VisitPayload {
   };
   appointmentDate: string | Date | null;
   appointmentTime: string | null;
+  message?: string;
+  residenceRef?: string;
 }
 
 interface LeadPayload {
@@ -212,8 +214,6 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
         financingValidation,
       });
 
-      console.log("temperature:", temperature);
-
       // COLD leads are not sent to the CRM — pushed to Brevo for nurturing.
       if (temperature === "COLD") {
         const apiKey = process.env.BREVO_API_KEY;
@@ -222,9 +222,6 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
           (process.env.BREVO_NURTURING_LIST_ID
             ? Number(process.env.BREVO_NURTURING_LIST_ID)
             : undefined);
-
-        console.log("apiKey:", apiKey);
-        console.log("listId:", listId);
 
         const coldLeadErrorMessage =
           "Impossible d'enregistrer votre demande pour le moment. Merci de réessayer dans quelques instants.";
@@ -335,7 +332,13 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
   return async function rdvHandler(request: NextRequest) {
     try {
       const body: VisitPayload = await request.json();
-      const { contact, appointmentDate, appointmentTime } = body;
+      const {
+        contact,
+        appointmentDate,
+        appointmentTime,
+        message,
+        residenceRef,
+      } = body;
 
       if (
         !contact?.name ||
@@ -358,6 +361,7 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
         : dateValue.toISOString();
 
       const residences = await resolveResidenceIds({
+        residenceRef,
         defaultResidenceName: options.defaultResidenceName,
       });
 
@@ -368,6 +372,7 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
         email: contact.email,
         phoneMobile: contact.phone,
         appointmentDate: formattedDate,
+        comment: message || undefined,
         residences,
         temperature: "HOT",
       };

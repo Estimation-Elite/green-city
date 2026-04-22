@@ -101,32 +101,26 @@ function CallbackForm({
     }
   };
 
-  const buildAppointmentISO = (): string | undefined => {
-    if (!form.appointmentDate || !form.appointmentTime) return undefined;
-    const dateStr = format(form.appointmentDate, "yyyy-MM-dd");
-    return `${dateStr}T${form.appointmentTime}:00`;
-  };
-
   const handleSubmit = async () => {
     if (submitting) return;
     setSubmitting(true);
 
     try {
-      const appointmentDate = buildAppointmentISO();
-
-      const response = await fetch("/api/lead", {
+      const response = await fetch("/api/rdv", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prenom: form.prenom.trim(),
-          nom: form.nom.trim(),
-          email: form.email.trim(),
-          telephone: form.telephone.trim(),
-          appointmentDate,
+          contact: {
+            firstName: form.prenom.trim(),
+            name: form.nom.trim(),
+            email: form.email.trim(),
+            phone: form.telephone.trim(),
+          },
+          appointmentDate: form.appointmentDate?.toISOString() ?? null,
+          appointmentTime: form.appointmentTime,
           message: form.message.trim() || undefined,
-          formType: "callback",
-          utmSource: utmParams.utm_source,
           residenceRef,
+          utmSource: utmParams.utm_source,
         }),
       });
 
