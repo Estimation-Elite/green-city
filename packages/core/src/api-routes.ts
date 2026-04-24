@@ -60,6 +60,12 @@ interface LeadHandlerOptions {
 interface RdvHandlerOptions {
   defaultResidenceName?: string;
   nurturingListId?: number;
+  rdvListId?: number;
+  // Numeric enum value of the Brevo "PROGRAMME" category attribute for this
+  // app. PROGRAMME is a category-type attribute in Brevo (not free text), so
+  // the upsert must send a numeric ID matching one of the predefined enum
+  // values. Leave undefined to skip setting it (e.g. park-view).
+  rdvProgrammeCategoryValue?: number;
 }
 
 // ────────────────────────────────────────────
@@ -251,6 +257,68 @@ function fireRdvConfirmation(params: {
     },
     apiKey,
   );
+}
+
+// Upsert the contact into the RDV list with RDV_DATE / RDV_TIME / PROGRAMME so
+// that a Brevo automation workflow can schedule a J-1 reminder relative to
+// RDV_DATE. Brevo's /smtp/email scheduledAt caps at 72h, which is unusable for
+// visits booked weeks in advance — routing through a list + workflow lifts
+// that limit. Fire-and-forget: the RDV is already committed in GreenCity.
+function fireRdvBrevoUpsert(params: {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  programmeCategoryValue?: number;
+  appointmentDate: Date;
+  appointmentTime: string;
+  listId: number;
+}) {
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) return;
+
+  void addContactToBrevoList(
+    {
+      email: params.email,
+      firstName: params.firstName,
+      lastName: params.lastName,
+      phone: params.phone,
+      attributes: {
+        RDV_DATE: params.appointmentDate.toISOString(),
+        RDV_TIME: params.appointmentTime,
+        ...(params.programmeCategoryValue !== undefined
+          ? { PROGRAMME: params.programmeCategoryValue }
+          : {}),
+      },
+    },
+    params.listId,
+    apiKey,
+  )
+    .then((result) => {
+      if (!result.ok) {
+        // TODO(Sentry): Sentry.captureMessage("brevo.rdv.upsert.failed", { level: "error", extra: { email: params.email, listId: params.listId, status: result.status, body: result.body } })
+        console.error(
+          JSON.stringify({
+            event: "brevo.rdv.upsert.failed",
+            email: params.email,
+            listId: params.listId,
+            status: result.status,
+            body: result.body,
+          }),
+        );
+      }
+    })
+    .catch((err) => {
+      // TODO(Sentry): Sentry.captureException(err, { extra: { email: params.email, listId: params.listId, phase: "brevo.rdv.upsert" } })
+      console.error(
+        JSON.stringify({
+          event: "brevo.rdv.upsert.threw",
+          email: params.email,
+          listId: params.listId,
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      );
+    });
 }
 
 export function createLeadHandler(options: LeadHandlerOptions = {}) {
@@ -507,6 +575,20 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
       };
 
       const result = await createGreenCityLead(greenCityPayload);
+
+      if (options.rdvListId && !Number.isNaN(dateValue.getTime())) {
+        fireRdvBrevoUpsert({
+          email: contact.email,
+          firstName:
+            contact.firstName || contact.name.split(" ")[0] || contact.name,
+          lastName: contact.name,
+          phone: contact.phone,
+          programmeCategoryValue: options.rdvProgrammeCategoryValue,
+          appointmentDate: dateValue,
+          appointmentTime: appointmentTime,
+          listId: options.rdvListId,
+        });
+      }
 
       // Mark RDV_PRIS=true on the Brevo contact (if it exists) to exit the
       // nurturing workflow. Never creates a contact: a 404 is silent.
