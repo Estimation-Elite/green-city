@@ -20,15 +20,16 @@ Throughout this skill, `<APP>` is a placeholder for the current app being proces
 
 All apps are deployed to the same server (host `217.160.246.17`).
 
-| App             | Remote directory     |
-| --------------- | -------------------- |
-| l-archipel      | /opt/l-archipel      |
-| park-view-old   | /opt/park-view-OLD   |
-| park-view-2-old | /opt/park-view-2-OLD |
-| revelation      | /opt/revelation      |
-| roof-garden     | /opt/roof-garden     |
-| park-view       | /opt/park-view       |
-| home-spirit-2   | /opt/home-spirit-2   |
+| App               | Remote directory       |
+| ----------------- | ---------------------- |
+| l-archipel        | /opt/l-archipel        |
+| park-view-old     | /opt/park-view-OLD     |
+| park-view-2-old   | /opt/park-view-2-OLD   |
+| revelation        | /opt/revelation        |
+| roof-garden       | /opt/roof-garden       |
+| park-view         | /opt/park-view         |
+| home-spirit-2     | /opt/home-spirit-2     |
+| fb-leads-webhook  | /opt/fb-leads-webhook  |
 
 ### Name normalization
 

@@ -72,7 +72,7 @@ interface RdvHandlerOptions {
 // Mapping helpers
 // ────────────────────────────────────────────
 
-function mapObjective(
+export function mapObjective(
   value?: "HABITER" | "INVESTIR",
 ): GreenCityObjective | undefined {
   if (!value) return undefined;
@@ -83,7 +83,7 @@ function mapObjective(
   return map[value];
 }
 
-function mapPurchaseTime(
+export function mapPurchaseTime(
   value?: "IMMEDIAT" | "6_MOIS" | "INDEFINI",
 ): PurchaseTime | undefined {
   if (!value || value === "INDEFINI") return undefined;
@@ -94,7 +94,7 @@ function mapPurchaseTime(
   return map[value];
 }
 
-function mapFinancingValidation(
+export function mapFinancingValidation(
   value?: "OUI" | "NON" | "EN_COURS",
 ): FinancingValidation | undefined {
   if (!value) return undefined;
@@ -110,7 +110,7 @@ function mapFinancingValidation(
 // Temperature scoring
 // ────────────────────────────────────────────
 
-function computeTemperature(
+export function computeTemperature(
   formType: "lead" | "rdv",
   payload: {
     objectif?: string;
