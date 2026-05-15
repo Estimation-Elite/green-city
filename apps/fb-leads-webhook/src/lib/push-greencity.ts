@@ -73,16 +73,37 @@ export async function pushLeadToGreenCity(
   const lastName = lead.lastName || lead.firstName || "Lead Facebook";
   const firstName = lead.firstName || lastName;
 
-  const residences = await resolveResidenceIds();
-  if (residences.length === 0) {
-    logError("fb.lead.no_residences", { source, email: lead.email });
-  }
-
   const temperature = computeTemperature("lead", {
     objectif: lead.objectif,
     purchaseTime: lead.horizonAchat,
     financingValidation: lead.financement,
   });
+
+  // Every FB lead lands in Brevo "Tous leads" (fire-and-forget), regardless
+  // of temperature or GreenCity outcome.
+  upsertToAllLeadsList({
+    email: lead.email,
+    firstName,
+    lastName,
+    phone: phoneMobile,
+    temperature,
+    source,
+  });
+
+  // COLD stops here: no GreenCity write, no residence resolution. The SOURCE
+  // attribute on the Brevo contact is enough for FB-specific segmentation.
+  if (temperature === "COLD") {
+    logEvent("fb.lead.cold_processed", {
+      source,
+      email: lead.email,
+    });
+    return { ok: true, leadId: lead.email, temperature };
+  }
+
+  const residences = await resolveResidenceIds();
+  if (residences.length === 0) {
+    logError("fb.lead.no_residences", { source, email: lead.email });
+  }
 
   const commentParts = [`[${source}]`];
   if (lead.message) commentParts.push(lead.message);
@@ -100,6 +121,18 @@ export async function pushLeadToGreenCity(
     temperature,
   };
 
+  // Dev/test toggle: skip the GreenCity API call entirely. Brevo is still
+  // exercised. Set DRY_RUN_GREENCITY=true in the env to enable.
+  if (process.env.DRY_RUN_GREENCITY === "true") {
+    logEvent("fb.lead.dry_run", {
+      source,
+      email: lead.email,
+      temperature,
+      payload,
+    });
+    return { ok: true, leadId: `dry-run-${lead.email}`, temperature };
+  }
+
   try {
     const result = await createGreenCityLead(payload);
     logEvent("fb.lead.created", {
@@ -107,15 +140,6 @@ export async function pushLeadToGreenCity(
       email: lead.email,
       temperature,
       greenCityLeadId: result.id,
-    });
-
-    upsertToAllLeadsList({
-      email: lead.email,
-      firstName,
-      lastName,
-      phone: phoneMobile,
-      temperature,
-      source,
     });
 
     return { ok: true, leadId: String(result.id), temperature };
@@ -134,8 +158,8 @@ export async function pushLeadToGreenCity(
 }
 
 // Fire-and-forget upsert into the Brevo "Tous leads" registry list with
-// TEMPERATURE. No nurturing-list write: FB leads come from a separate funnel
-// and shouldn't be attributed to a specific program's nurturing workflow.
+// TEMPERATURE and SOURCE. SOURCE lets Brevo workflows segment FB-origin
+// contacts (e.g. FB-specific nurturing for COLD) without a dedicated list.
 function upsertToAllLeadsList(params: {
   email: string;
   firstName: string;
@@ -162,7 +186,7 @@ function upsertToAllLeadsList(params: {
       firstName: params.firstName,
       lastName: params.lastName,
       phone: params.phone,
-      attributes: { TEMPERATURE: params.temperature },
+      attributes: { TEMPERATURE: params.temperature, SOURCE: params.source },
     },
     listId,
     apiKey,

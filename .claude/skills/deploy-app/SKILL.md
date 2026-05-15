@@ -10,9 +10,10 @@ allowed-tools: Bash(docker *), Bash(sshpass *), Bash(source *), Bash(rm *), Bash
 
 Deploy the apps passed in `$ARGUMENTS` to the green-city IONOS VPS server.
 
-`$ARGUMENTS` is a **whitespace-separated list of app names**. Examples:
+`$ARGUMENTS` is a **whitespace-separated list of app names**, or the special value `all` to deploy every app in the mapping table below. Examples:
 - `/deploy-app l-archipel` → single app
 - `/deploy-app l-archipel revelation home-spirit-2` → three apps
+- `/deploy-app all` → every app listed in the mapping table
 
 Throughout this skill, `<APP>` is a placeholder for the current app being processed. When there are multiple apps, you MUST loop through them and run the full deployment flow (steps 2–8) for each one.
 
@@ -58,6 +59,7 @@ Server credentials are stored in the `.server` file at the repo root. It contain
 
 ### Step 1: Validate
 
+- If `$ARGUMENTS` is `all`, expand it to the full list of apps from the mapping table.
 - Normalize each user-provided name against the table above.
 - If `$ARGUMENTS` is empty, ask the user which app(s) to deploy.
 - Read the `.server` file to get `HOTE` and `MDP`.
