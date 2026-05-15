@@ -1,4 +1,5 @@
 import {
+  addContactToBrevoList,
   computeTemperature,
   createGreenCityLead,
   findGreenCityResidenceIdByName,
@@ -107,6 +108,16 @@ export async function pushLeadToGreenCity(
       temperature,
       greenCityLeadId: result.id,
     });
+
+    upsertToAllLeadsList({
+      email: lead.email,
+      firstName,
+      lastName,
+      phone: phoneMobile,
+      temperature,
+      source,
+    });
+
     return { ok: true, leadId: String(result.id), temperature };
   } catch (err) {
     logError("fb.lead.failed", {
@@ -120,4 +131,59 @@ export async function pushLeadToGreenCity(
       error: "Echec de la creation du lead cote GreenCity.",
     };
   }
+}
+
+// Fire-and-forget upsert into the Brevo "Tous leads" registry list with
+// TEMPERATURE. No nurturing-list write: FB leads come from a separate funnel
+// and shouldn't be attributed to a specific program's nurturing workflow.
+function upsertToAllLeadsList(params: {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  temperature: string;
+  source: string;
+}) {
+  const apiKey = process.env.BREVO_API_KEY;
+  const listIdRaw = process.env.BREVO_ALL_LEADS_LIST_ID;
+  const listId = listIdRaw ? Number(listIdRaw) : NaN;
+
+  if (!apiKey || !Number.isInteger(listId) || listId <= 0) {
+    logError("fb.brevo.config_missing", {
+      hasApiKey: Boolean(apiKey),
+      hasListId: Boolean(listIdRaw),
+    });
+    return;
+  }
+
+  void addContactToBrevoList(
+    {
+      email: params.email,
+      firstName: params.firstName,
+      lastName: params.lastName,
+      phone: params.phone,
+      attributes: { TEMPERATURE: params.temperature },
+    },
+    listId,
+    apiKey,
+  )
+    .then((result) => {
+      if (!result.ok) {
+        logError("fb.brevo.upsert.failed", {
+          source: params.source,
+          email: params.email,
+          listId,
+          status: result.status,
+          body: result.body,
+        });
+      }
+    })
+    .catch((err) => {
+      logError("fb.brevo.upsert.threw", {
+        source: params.source,
+        email: params.email,
+        listId,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    });
 }

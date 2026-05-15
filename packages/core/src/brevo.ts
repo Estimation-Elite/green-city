@@ -46,7 +46,7 @@ export interface AddContactToListResult {
 
 export async function addContactToBrevoList(
   contact: BrevoContactPayload,
-  listId: number,
+  listIds: number | number[],
   apiKey: string,
 ): Promise<AddContactToListResult> {
   const normalizedPhone = contact.phone ? normalizePhoneE164(contact.phone) : null;
@@ -56,6 +56,8 @@ export async function addContactToBrevoList(
     ...(normalizedPhone ? { SMS: normalizedPhone } : {}),
     ...contact.attributes,
   };
+
+  const ids = Array.isArray(listIds) ? listIds : [listIds];
 
   const res = await fetchWithRetry(`${BREVO_API_BASE}/contacts`, {
     method: "POST",
@@ -67,7 +69,7 @@ export async function addContactToBrevoList(
     body: JSON.stringify({
       email: contact.email,
       attributes,
-      listIds: [listId],
+      listIds: ids,
       updateEnabled: true,
     }),
   });

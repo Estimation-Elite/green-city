@@ -14,3 +14,4 @@ export {
   mapFinancingValidation,
   computeTemperature,
 } from "./api-routes";
+export { addContactToBrevoList, type BrevoContactPayload } from "./brevo";
