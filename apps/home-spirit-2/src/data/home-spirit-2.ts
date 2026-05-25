@@ -1,3 +1,5 @@
+import type { LegalData } from "@repo/ui";
+
 export const siteConfig = {
   projectName: "Home Spirit 2",
   city: "Toulouse",
@@ -98,9 +100,32 @@ export const footerData = {
   phone: "",
   email: "",
   address: "",
-  // legalLinks: [
-  //   { label: "Mentions légales", href: "/mentions-legales" },
-  //   { label: "Politique de confidentialité", href: "/politique-de-confidentialite" },
-  //   { label: "CGU", href: "/cgu" },
-  // ],
+  legalLinks: [
+    { label: "Mentions légales", href: "/mentions-legales" },
+    { label: "Politique de confidentialité", href: "/politique-de-confidentialite" },
+    { label: "Cookies", href: "/cookies" },
+  ],
+};
+
+// TODO RGPD: compléter avec les vraies informations légales du client
+// (raison sociale, SIRET, hébergeur réel, DPO). Les valeurs manquantes seront
+// affichées comme "[À compléter — ...]" sur les pages publiées.
+export const legalData: LegalData = {
+  companyName: "GreenCity Immobilier",
+  companyLegalForm: "",
+  companyCapital: "",
+  companyAddress: "",
+  companyRcs: "",
+  companySiret: "",
+  companyVat: "",
+  companyPhone: "",
+  companyEmail: "",
+  publicationDirector: "",
+  hostingProvider: "",
+  hostingAddress: "",
+  hostingPhone: "",
+  dpoName: "",
+  dpoEmail: "",
+  programName: "Home Spirit 2",
+  projectAddress: "Toulouse, quartier Montaudran",
 };

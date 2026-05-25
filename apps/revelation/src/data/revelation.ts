@@ -1,3 +1,5 @@
+import type { LegalData } from "@repo/ui";
+
 export const siteConfig = {
   projectName: "Révélation",
   city: "Toulouse",
@@ -96,4 +98,30 @@ export const footerData = {
   phone: "",
   email: "",
   address: "218/226 Route de Revel, 31400 Toulouse",
+  legalLinks: [
+    { label: "Mentions légales", href: "/mentions-legales" },
+    { label: "Politique de confidentialité", href: "/politique-de-confidentialite" },
+    { label: "Cookies", href: "/cookies" },
+  ],
+};
+
+// TODO RGPD: compléter avec les vraies informations légales du client.
+export const legalData: LegalData = {
+  companyName: "GreenCity Immobilier",
+  companyLegalForm: "",
+  companyCapital: "",
+  companyAddress: "",
+  companyRcs: "",
+  companySiret: "",
+  companyVat: "",
+  companyPhone: "",
+  companyEmail: "",
+  publicationDirector: "",
+  hostingProvider: "",
+  hostingAddress: "",
+  hostingPhone: "",
+  dpoName: "",
+  dpoEmail: "",
+  programName: "Révélation",
+  projectAddress: "218/226 Route de Revel, 31400 Toulouse",
 };

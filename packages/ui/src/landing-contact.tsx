@@ -17,6 +17,8 @@ import { Textarea } from "./textarea"
 import { Button } from "./button"
 import { toast } from "sonner"
 import { trackLeadSubmitted } from "@repo/core/analytics/trackLeadSubmitted"
+import { CONSENT_TEXT, CONSENT_VERSION } from "./consent-text"
+import { ConsentLabel } from "./consent-label"
 
 type ContactInfo = {
     phone?: string
@@ -75,6 +77,10 @@ function LandingContact({
             telephone: formData.get("telephone"),
             situation: formData.get("situation"),
             message: formData.get("message"),
+            consent: formData.get("consent") === "on",
+            consentText: CONSENT_TEXT,
+            consentVersion: CONSENT_VERSION,
+            consentSource: "form_landing",
         }
 
         try {
@@ -224,9 +230,7 @@ function LandingContact({
                                     htmlFor="consent"
                                     className="text-xs leading-relaxed text-gray-500"
                                 >
-                                    J&apos;accepte que mes données soient traitées dans le
-                                    cadre de ma demande de contact. Consultez notre politique de
-                                    confidentialité pour en savoir plus.
+                                    <ConsentLabel />
                                 </Label>
                             </div>
 

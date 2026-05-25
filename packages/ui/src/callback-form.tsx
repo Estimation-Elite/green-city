@@ -13,6 +13,8 @@ import { CustomCalendar } from "./custom-calendar";
 import { useUtmParams } from "./hooks/useUtmParams";
 import { trackLeadSubmitted } from "@repo/core/analytics/trackLeadSubmitted";
 import { trackCallbackScheduled } from "@repo/core/analytics/trackCallbackScheduled";
+import { CONSENT_TEXT, CONSENT_VERSION } from "./consent-text";
+import { ConsentLabel } from "./consent-label";
 
 // ────────────────────────────────────────────
 // Types
@@ -26,6 +28,7 @@ interface CallbackFormData {
   appointmentDate: Date | undefined;
   appointmentTime: string | null;
   message: string;
+  consent: boolean;
 }
 
 interface CallbackFormProps {
@@ -72,6 +75,7 @@ function CallbackForm({
     appointmentDate: undefined,
     appointmentTime: null,
     message: "",
+    consent: false,
   });
 
   const handleNext = () => {
@@ -88,7 +92,8 @@ function CallbackForm({
       form.nom.trim().length > 1 &&
       form.email.includes("@") &&
       form.email.includes(".") &&
-      form.telephone.replace(/\s/g, "").length >= 10
+      form.telephone.replace(/\s/g, "").length >= 10 &&
+      form.consent
     );
   };
 
@@ -121,6 +126,10 @@ function CallbackForm({
           message: form.message.trim() || undefined,
           residenceRef,
           utmSource: utmParams.utm_source,
+          consent: form.consent,
+          consentText: CONSENT_TEXT,
+          consentVersion: CONSENT_VERSION,
+          consentSource: "form_callback",
         }),
       });
 
@@ -240,6 +249,18 @@ function CallbackForm({
             className="h-12 text-base pl-11"
           />
         </div>
+      </div>
+      <div className="flex items-start gap-3 pt-1">
+        <input
+          type="checkbox"
+          id="callback-consent"
+          checked={form.consent}
+          onChange={(e) => setForm((prev) => ({ ...prev, consent: e.target.checked }))}
+          className="mt-1 size-4 rounded border-gray-300 text-accent focus:ring-accent"
+        />
+        <label htmlFor="callback-consent" className="text-xs leading-relaxed text-muted">
+          <ConsentLabel />
+        </label>
       </div>
       <Button
         onClick={handleNext}

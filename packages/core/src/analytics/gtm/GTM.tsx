@@ -24,6 +24,22 @@ export async function GTM({ gtmId, enabled = true }: GTMProps) {
 
   return (
     <>
+      {/* Google Consent Mode v2 — default state is 'denied' until the user
+          interacts with the cookie banner. Must run BEFORE the GTM loader so
+          downstream tags read the right state. wait_for_update gives the
+          banner 500ms to inject an explicit choice on returning visitors. */}
+      <Script id="gtm-consent-default" strategy="beforeInteractive">{`
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        window.gtag = window.gtag || gtag;
+        gtag('consent', 'default', {
+          'ad_storage': 'denied',
+          'ad_user_data': 'denied',
+          'ad_personalization': 'denied',
+          'analytics_storage': 'denied',
+          'wait_for_update': 500
+        });
+      `}</Script>
       <Script id="gtm" strategy="beforeInteractive">{`
         (function(w,d,s,l){
           w[l]=w[l]||[];

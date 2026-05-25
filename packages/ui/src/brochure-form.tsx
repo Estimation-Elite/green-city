@@ -9,6 +9,8 @@ import { Button } from "./button";
 import { useUtmParams } from "./hooks/useUtmParams";
 import { trackLeadSubmitted } from "@repo/core/analytics/trackLeadSubmitted";
 import { trackBrochureDownloaded } from "@repo/core/analytics/trackBrochureDownloaded";
+import { CONSENT_TEXT, CONSENT_VERSION } from "./consent-text";
+import { ConsentLabel } from "./consent-label";
 
 // ────────────────────────────────────────────
 // Types
@@ -22,6 +24,7 @@ interface BrochureFormData {
   objectif: "HABITER" | "INVESTIR" | null;
   purchaseTime: "IMMEDIAT" | "6_MOIS" | "INDEFINI" | null;
   financingValidation: "OUI" | "NON" | "EN_COURS" | null;
+  consent: boolean;
 }
 
 interface BrochureFormProps {
@@ -79,6 +82,7 @@ function BrochureForm({
     objectif: null,
     purchaseTime: null,
     financingValidation: null,
+    consent: false,
   });
 
   const handleNext = () => {
@@ -95,7 +99,8 @@ function BrochureForm({
       form.nom.trim().length > 1 &&
       form.email.includes("@") &&
       form.email.includes(".") &&
-      form.telephone.replace(/\s/g, "").length >= 10
+      form.telephone.replace(/\s/g, "").length >= 10 &&
+      form.consent
     );
   };
 
@@ -144,6 +149,10 @@ function BrochureForm({
         formType: "brochure",
         utmSource: utmParams.utm_source,
         residenceRef,
+        consent: data.consent,
+        consentText: CONSENT_TEXT,
+        consentVersion: CONSENT_VERSION,
+        consentSource: "form_brochure",
       }
 
       const response = await fetch("/api/lead", {
@@ -279,6 +288,18 @@ function BrochureForm({
             className="h-12 text-base pl-11"
           />
         </div>
+      </div>
+      <div className="flex items-start gap-3 pt-1">
+        <input
+          type="checkbox"
+          id="brochure-consent"
+          checked={form.consent}
+          onChange={(e) => setForm((prev) => ({ ...prev, consent: e.target.checked }))}
+          className="mt-1 size-4 rounded border-gray-300 text-accent focus:ring-accent"
+        />
+        <label htmlFor="brochure-consent" className="text-xs leading-relaxed text-muted">
+          <ConsentLabel />
+        </label>
       </div>
       <Button
         onClick={handleNext}

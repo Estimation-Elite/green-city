@@ -11,6 +11,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { fr } from "date-fns/locale";
 import { format } from "date-fns";
 import { trackVisitScheduled } from "@repo/core/analytics/trackVisitScheduled";
+import { CONSENT_TEXT, CONSENT_VERSION } from "./consent-text";
+import { ConsentLabel } from "./consent-label";
 
 export interface VisitFormData {
   contact: {
@@ -21,6 +23,7 @@ export interface VisitFormData {
   };
   appointmentDate: Date | undefined;
   appointmentTime: string | null;
+  consent: boolean;
 }
 
 export interface VisitWizardProps {
@@ -42,6 +45,7 @@ const getInitialFormData = (): VisitFormData => ({
   },
   appointmentDate: undefined,
   appointmentTime: null,
+  consent: false,
 });
 
 const defaultCreateVisit = async (
@@ -57,6 +61,9 @@ const defaultCreateVisit = async (
       appointmentDate: formData.appointmentDate ? format(formData.appointmentDate, "yyyy-MM-dd") : null,
       projectAddress,
       utmSource,
+      consentText: CONSENT_TEXT,
+      consentVersion: CONSENT_VERSION,
+      consentSource: "form_rdv",
     }),
   });
 
@@ -119,7 +126,8 @@ export function VisitWizard({
     return (
       formData.contact.name.length > 2 &&
       formData.contact.email.includes("@") &&
-      formData.contact.phone.length >= 10
+      formData.contact.phone.length >= 10 &&
+      formData.consent
     );
   };
 
@@ -322,6 +330,22 @@ export function VisitWizard({
               className="h-12 text-base pl-11"
             />
           </div>
+        </div>
+
+        <div className="flex items-start gap-3 pt-2">
+          <input
+            type="checkbox"
+            id="rdv-consent"
+            checked={formData.consent}
+            onChange={(e) => updateFormData("consent", e.target.checked)}
+            className="mt-1 size-4 rounded border-gray-300 text-brand-primary focus:ring-brand-primary"
+          />
+          <label
+            htmlFor="rdv-consent"
+            className="text-xs leading-relaxed text-gray-500"
+          >
+            <ConsentLabel />
+          </label>
         </div>
 
         <div className="flex justify-center gap-4 pt-4">

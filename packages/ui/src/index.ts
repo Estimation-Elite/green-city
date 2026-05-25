@@ -44,3 +44,14 @@ export { LandingContact } from "./landing-contact";
 export { LeadModal } from "./lead-modal";
 export { CustomCalendar } from "./custom-calendar";
 export { VisitWizard } from "./visit-wizard";
+
+// Consent / RGPD
+export { CONSENT_TEXT, CONSENT_VERSION, PRIVACY_POLICY_PATH } from "./consent-text";
+export { ConsentLabel } from "./consent-label";
+export { CookieBanner } from "./cookie-banner";
+
+// Pages légales
+export { LegalMentions } from "./legal/LegalMentions";
+export { PrivacyPolicy } from "./legal/PrivacyPolicy";
+export { CookiePolicy } from "./legal/CookiePolicy";
+export type { LegalData } from "./legal/legal-data";

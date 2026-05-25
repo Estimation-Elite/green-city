@@ -79,6 +79,20 @@ export async function pushLeadToGreenCity(
     financingValidation: lead.financement,
   });
 
+  // FB Lead Ads collects consent on Meta's side (the form requires acceptance
+  // of the advertiser's privacy notice before submission). We treat that as
+  // an implicit consent and record it with the inbound time, unless Make.com
+  // passes an explicit consentTimestamp from Meta's lead payload.
+  const consentTimestamp = lead.consentTimestamp || new Date().toISOString();
+  const consentVersion = lead.consentVersion || "facebook_lead_ads";
+  const consentAttributes = {
+    CONSENT_DATE: consentTimestamp,
+    CONSENT_TEXT:
+      "Consentement recueilli via le formulaire Facebook Lead Ads (politique de confidentialité affichée par Meta avant soumission).",
+    CONSENT_VERSION: consentVersion,
+    CONSENT_SOURCE: "facebook_lead_ads",
+  };
+
   // Every FB lead lands in Brevo "Tous leads" (fire-and-forget), regardless
   // of temperature or GreenCity outcome.
   upsertToAllLeadsList({
@@ -88,6 +102,7 @@ export async function pushLeadToGreenCity(
     phone: phoneMobile,
     temperature,
     source,
+    extraAttributes: consentAttributes,
   });
 
   // COLD stops here: no GreenCity write, no residence resolution. The SOURCE
@@ -105,7 +120,8 @@ export async function pushLeadToGreenCity(
     logError("fb.lead.no_residences", { source, email: lead.email });
   }
 
-  const commentParts = [`[${source}]`];
+  const consentHeader = `[CONSENT ${consentTimestamp} | v=${consentVersion} | src=facebook_lead_ads]`;
+  const commentParts = [consentHeader, `[${source}]`];
   if (lead.message) commentParts.push(lead.message);
 
   const payload: GreenCityLeadPayload = {
@@ -167,6 +183,7 @@ function upsertToAllLeadsList(params: {
   phone: string;
   temperature: string;
   source: string;
+  extraAttributes?: Record<string, unknown>;
 }) {
   const apiKey = process.env.BREVO_API_KEY;
   const listIdRaw = process.env.BREVO_ALL_LEADS_LIST_ID;
@@ -186,7 +203,11 @@ function upsertToAllLeadsList(params: {
       firstName: params.firstName,
       lastName: params.lastName,
       phone: params.phone,
-      attributes: { TEMPERATURE: params.temperature, SOURCE: params.source },
+      attributes: {
+        TEMPERATURE: params.temperature,
+        SOURCE: params.source,
+        ...(params.extraAttributes ?? {}),
+      },
     },
     listId,
     apiKey,

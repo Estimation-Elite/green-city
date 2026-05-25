@@ -9,6 +9,8 @@ import { Input } from "./input"
 import { Label } from "./label"
 import { toast } from "sonner"
 import { trackLeadSubmitted } from "@repo/core/analytics/trackLeadSubmitted"
+import { CONSENT_TEXT, CONSENT_VERSION } from "./consent-text"
+import { ConsentLabel } from "./consent-label"
 
 type SituationOption = {
     value: string
@@ -43,6 +45,10 @@ function LeadModal({
             email: formData.get("email"),
             telephone: formData.get("telephone"),
             situation: formData.get("situation"),
+            consent: formData.get("consent") === "on",
+            consentText: CONSENT_TEXT,
+            consentVersion: CONSENT_VERSION,
+            consentSource: "form_lead_modal",
         }
 
         try {
@@ -204,9 +210,7 @@ function LeadModal({
                                             htmlFor="modal-consent"
                                             className="text-xs leading-relaxed text-gray-500"
                                         >
-                                            J&apos;accepte que mes données soient traitées dans le
-                                            cadre de ma demande. Consultez notre politique de
-                                            confidentialité pour en savoir plus.
+                                            <ConsentLabel />
                                         </Label>
                                     </div>
 

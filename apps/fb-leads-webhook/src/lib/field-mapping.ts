@@ -8,6 +8,11 @@ export interface InboundLead {
   horizon_achat?: string;
   financement?: string;
   message?: string;
+  // Optional consent metadata propagated from Make.com / Facebook Lead Ads.
+  // FB collects consent on its own form, so when these fields are absent we
+  // record an implicit consent with the inbound timestamp (see push-greencity).
+  consentTimestamp?: string;
+  consentVersion?: string;
 }
 
 export interface NormalizedLead {
@@ -19,6 +24,8 @@ export interface NormalizedLead {
   horizonAchat?: "IMMEDIAT" | "6_MOIS" | "INDEFINI";
   financement?: "OUI" | "NON" | "EN_COURS";
   message?: string;
+  consentTimestamp?: string;
+  consentVersion?: string;
 }
 
 const OBJECTIF_MAP: Record<string, NormalizedLead["objectif"]> = {
@@ -97,6 +104,13 @@ export function normalizeInboundLead(input: InboundLead): NormalizedLead {
   result.objectif = pick(OBJECTIF_MAP, input.objectif);
   result.horizonAchat = pick(HORIZON_MAP, input.horizon_achat);
   result.financement = pick(FINANCEMENT_MAP, input.financement);
+
+  if (input.consentTimestamp?.trim()) {
+    result.consentTimestamp = input.consentTimestamp.trim();
+  }
+  if (input.consentVersion?.trim()) {
+    result.consentVersion = input.consentVersion.trim();
+  }
 
   return result;
 }

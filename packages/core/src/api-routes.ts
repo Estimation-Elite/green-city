@@ -24,7 +24,14 @@ const APPOINTMENT_TIME_REGEX = /^\d{2}:\d{2}$/;
 // Types
 // ────────────────────────────────────────────
 
-interface VisitPayload {
+interface ConsentFields {
+  consent?: boolean;
+  consentText?: string;
+  consentVersion?: string;
+  consentSource?: string;
+}
+
+interface VisitPayload extends ConsentFields {
   contact: {
     firstName?: string;
     name: string;
@@ -37,7 +44,7 @@ interface VisitPayload {
   residenceRef?: string;
 }
 
-interface LeadPayload {
+interface LeadPayload extends ConsentFields {
   nom: string;
   prenom?: string;
   email: string;
@@ -50,6 +57,59 @@ interface LeadPayload {
   residenceRef?: string;
   residenceId?: string;
   formType?: "brochure" | "callback";
+}
+
+interface ConsentMetadata {
+  given: boolean;
+  text: string;
+  version: string;
+  source: string;
+  timestamp: string;
+  ip?: string;
+  userAgent?: string;
+}
+
+const CONSENT_MISSING_ERROR =
+  "Le consentement au traitement de vos données est requis pour soumettre ce formulaire.";
+
+function extractConsentMetadata(
+  request: NextRequest,
+  body: ConsentFields,
+): ConsentMetadata {
+  const forwarded = request.headers.get("x-forwarded-for");
+  const ip = forwarded ? forwarded.split(",")[0]?.trim() : undefined;
+  return {
+    given: body.consent === true,
+    text: typeof body.consentText === "string" ? body.consentText : "",
+    version: typeof body.consentVersion === "string" ? body.consentVersion : "",
+    source: typeof body.consentSource === "string" ? body.consentSource : "unknown",
+    timestamp: new Date().toISOString(),
+    ip: ip || undefined,
+    userAgent: request.headers.get("user-agent") || undefined,
+  };
+}
+
+// Prepend a single-line audit header to the free-text comment sent to GreenCity.
+// GreenCity has no structured consent field, so this is our trail of record on
+// that side (Brevo gets structured attributes — see consentBrevoAttributes).
+function formatConsentForComment(
+  consent: ConsentMetadata,
+  message?: string,
+): string | undefined {
+  if (!consent.given) return message || undefined;
+  const header = `[CONSENT ${consent.timestamp} | v=${consent.version} | src=${consent.source}${consent.ip ? ` | ip=${consent.ip}` : ""}]`;
+  return message ? `${header}\n\n${message}` : header;
+}
+
+function consentBrevoAttributes(consent: ConsentMetadata): Record<string, unknown> {
+  if (!consent.given) return {};
+  return {
+    CONSENT_DATE: consent.timestamp,
+    CONSENT_TEXT: consent.text,
+    CONSENT_VERSION: consent.version,
+    CONSENT_SOURCE: consent.source,
+    ...(consent.ip ? { CONSENT_IP: consent.ip } : {}),
+  };
 }
 
 interface LeadHandlerOptions {
@@ -284,6 +344,7 @@ function fireRdvBrevoUpsert(params: {
   appointmentDate: Date;
   appointmentTime: string;
   listIds: number[];
+  extraAttributes?: Record<string, unknown>;
 }) {
   const apiKey = process.env.BREVO_API_KEY;
   if (!apiKey || params.listIds.length === 0) return;
@@ -301,6 +362,7 @@ function fireRdvBrevoUpsert(params: {
         ...(params.programmeCategoryValue !== undefined
           ? { PROGRAMME: params.programmeCategoryValue }
           : {}),
+        ...(params.extraAttributes ?? {}),
       },
     },
     params.listIds,
@@ -345,6 +407,7 @@ function fireAllLeadsBrevoUpsert(params: {
   phone: string;
   temperature: LeadTemperature;
   listId: number;
+  extraAttributes?: Record<string, unknown>;
 }) {
   const apiKey = process.env.BREVO_API_KEY;
   if (!apiKey) return;
@@ -355,7 +418,10 @@ function fireAllLeadsBrevoUpsert(params: {
       firstName: params.firstName,
       lastName: params.lastName,
       phone: params.phone,
-      attributes: { TEMPERATURE: params.temperature },
+      attributes: {
+        TEMPERATURE: params.temperature,
+        ...(params.extraAttributes ?? {}),
+      },
     },
     params.listId,
     apiKey,
@@ -405,6 +471,14 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
         residenceId,
         formType,
       } = body;
+
+      const consent = extractConsentMetadata(request, body);
+      if (!consent.given) {
+        return NextResponse.json(
+          { error: CONSENT_MISSING_ERROR },
+          { status: 400 },
+        );
+      }
 
       if (!nom || !email || !telephone) {
         return NextResponse.json(
@@ -478,7 +552,10 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
               firstName: prenom || nom.split(" ")[0] || nom,
               lastName: nom,
               phone: telephone,
-              attributes: { TEMPERATURE: "COLD" },
+              attributes: {
+                TEMPERATURE: "COLD",
+                ...consentBrevoAttributes(consent),
+              },
             },
             targetListIds,
             apiKey,
@@ -540,7 +617,7 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
         purchaseTime: mapPurchaseTime(purchaseTime),
         financingValidation: mapFinancingValidation(financingValidation),
         appointmentDate: normalizedAppointmentDate,
-        comment: message || undefined,
+        comment: formatConsentForComment(consent, message),
         residences,
         temperature,
       };
@@ -556,6 +633,7 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
           phone: telephone,
           temperature,
           listId: allLeadsListId,
+          extraAttributes: consentBrevoAttributes(consent),
         });
       }
 
@@ -602,6 +680,14 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
         message,
         residenceRef,
       } = body;
+
+      const consent = extractConsentMetadata(request, body);
+      if (!consent.given) {
+        return NextResponse.json(
+          { error: CONSENT_MISSING_ERROR },
+          { status: 400 },
+        );
+      }
 
       if (
         !contact?.name ||
@@ -658,7 +744,7 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
         email: contact.email,
         phoneMobile: normalizedPhone,
         appointmentDate: formattedDate,
-        comment: message || undefined,
+        comment: formatConsentForComment(consent, message),
         residences,
         temperature: "HOT",
       };
@@ -681,6 +767,7 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
           appointmentDate: dateValue,
           appointmentTime: appointmentTime,
           listIds: rdvUpsertListIds,
+          extraAttributes: consentBrevoAttributes(consent),
         });
       }
 

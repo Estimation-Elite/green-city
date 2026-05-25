@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
 import { GTM } from "@repo/core/analytics/GTM";
+import { CookieBanner } from "@repo/ui";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,6 +28,7 @@ export default async function RootLayout({
       <body className="antialiased">
         <GTM gtmId={gtmId} />
         <div className="min-h-screen bg-white flex flex-col">{children}</div>
+        <CookieBanner />
         <Toaster />
       </body>
     </html>
