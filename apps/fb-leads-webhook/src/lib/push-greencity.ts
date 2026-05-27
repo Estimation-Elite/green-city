@@ -90,8 +90,9 @@ export async function pushLeadToGreenCity(
     source,
   });
 
-  // COLD stops here: no GreenCity write, no residence resolution. The SOURCE
-  // attribute on the Brevo contact is enough for FB-specific segmentation.
+  // COLD stops here: no GreenCity write, no residence resolution. The
+  // SOURCE_LP attribute on the Brevo contact is enough for FB-specific
+  // segmentation.
   if (temperature === "COLD") {
     logEvent("fb.lead.cold_processed", {
       source,
@@ -157,9 +158,18 @@ export async function pushLeadToGreenCity(
   }
 }
 
+// SOURCE_LP is a Brevo category (enum) attribute. Value 4 = FB_ADS,
+// declared in the Brevo schema alongside the LP-specific values
+// (1=ARCHIPEL_LP, 2=REVELATION_LP, 3=HOME_SPIRIT2_LP). Brevo silently
+// drops string values that are not enum members, so we MUST send the
+// integer ID, not the label.
+const SOURCE_LP_FB_ADS = 4;
+
 // Fire-and-forget upsert into the Brevo "Tous leads" registry list with
-// TEMPERATURE and SOURCE. SOURCE lets Brevo workflows segment FB-origin
-// contacts (e.g. FB-specific nurturing for COLD) without a dedicated list.
+// TEMPERATURE and SOURCE_LP. SOURCE_LP is set to FB_ADS (4) so Brevo
+// workflows can segment FB-origin contacts (e.g. FB-specific nurturing
+// for COLD) without a dedicated list. LP-origin contacts do not set
+// SOURCE_LP today, which is how the two origins are distinguished.
 function upsertToAllLeadsList(params: {
   email: string;
   firstName: string;
@@ -186,7 +196,10 @@ function upsertToAllLeadsList(params: {
       firstName: params.firstName,
       lastName: params.lastName,
       phone: params.phone,
-      attributes: { TEMPERATURE: params.temperature, SOURCE: params.source },
+      attributes: {
+        TEMPERATURE: params.temperature,
+        SOURCE_LP: SOURCE_LP_FB_ADS,
+      },
     },
     listId,
     apiKey,
