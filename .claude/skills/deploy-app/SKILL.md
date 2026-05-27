@@ -3,7 +3,7 @@ name: deploy-app
 description: Build and deploy one or more apps from the monorepo to the green-city IONOS VPS server
 disable-model-invocation: true
 argument-hint: "[app-name]..."
-allowed-tools: Bash(docker *), Bash(sshpass *), Bash(source *), Bash(rm *), Bash(ls *), Bash(md5sum *), Read
+allowed-tools: Bash(docker *), Bash(sshpass *), Bash(source *), Bash(rm *), Bash(ls *), Bash(md5sum *), Bash(grep *), Read
 ---
 
 # Deploy one or more apps to the server
@@ -65,6 +65,18 @@ Server credentials are stored in the `.server` file at the repo root. It contain
 - Read the `.server` file to get `HOTE` and `MDP`.
 - Verify that `apps/<APP>/Dockerfile` exists. If not, create one by copying `apps/roof-garden/Dockerfile` and replacing all occurrences of `roof-garden` with `<APP>`.
 - Verify that `apps/<APP>/.env` exists (it usually does — it carries `GREENCITY_API_KEY`, `GREENCITY_API_SECRET`, `GTM_ID`, etc.).
+- **Lint the `.env` content.** `docker compose up` refuses to start the container if it cannot parse the env file (e.g. a pasted `curl "..."` example, a stray unescaped `"`, a key with a space). Every non-empty, non-comment line MUST match `^[A-Za-z_][A-Za-z0-9_]*=`. Run this check from the repo root:
+
+  ```bash
+  grep -nvE '^\s*([A-Za-z_][A-Za-z0-9_]*=|#|$)' apps/<APP>/.env || echo "OK"
+  ```
+
+  If the output is `OK`, continue. Otherwise the matching lines are scratch notes / pasted commands / typos polluting the env file. Show them to the user and ask which of the following to do:
+  1. **Fix the local `.env`** (recommended — move notes to a separate `notes.md`, or prefix each note line with `#`). Re-run the lint after editing.
+  2. **Strip non-conforming lines on transfer only** (one-shot escape hatch — keeps the local `.env` untouched but uploads a cleaned copy). Implement by piping through `grep -E '^\s*([A-Za-z_][A-Za-z0-9_]*=|#|$)'` before `scp`-ing to a temp file, then transferring that file.
+  3. **Abort.**
+
+  NEVER auto-edit the user's local `.env` without their explicit choice — it may contain in-progress secrets or formatting they want to keep.
 
 ### Step 2: Build the Docker image
 
