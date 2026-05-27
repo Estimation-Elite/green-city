@@ -104,6 +104,22 @@ export function mapPurchaseTime(
   return map[value];
 }
 
+// HORIZON_ACHAT côté Brevo est un attribut Catégorie avec un schéma en
+// buckets mois (0_3M, 3_6M, 6_12M, 12M_PLUS) — granularité commerciale
+// historique. Brevo drop silencieusement toute valeur hors-schéma, donc on
+// mappe les 3 réponses du formulaire vers les 2 buckets courts. INDEFINI
+// n'a pas d'équivalent sémantique propre (≠ "12M+") → on omet l'attribut.
+export function mapPurchaseTimeForBrevo(
+  value?: "IMMEDIAT" | "6_MOIS" | "INDEFINI",
+): "0_3M" | "3_6M" | undefined {
+  if (!value || value === "INDEFINI") return undefined;
+  const map: Record<string, "0_3M" | "3_6M"> = {
+    IMMEDIAT: "0_3M",
+    "6_MOIS": "3_6M",
+  };
+  return map[value];
+}
+
 export function mapFinancingValidation(
   value?: "OUI" | "NON" | "EN_COURS",
 ): FinancingValidation | undefined {
@@ -284,6 +300,7 @@ function fireRdvBrevoUpsert(params: {
   appointmentDate: Date;
   appointmentTime: string;
   listIds: number[];
+  message?: string;
 }) {
   const apiKey = process.env.BREVO_API_KEY;
   if (!apiKey || params.listIds.length === 0) return;
@@ -301,6 +318,7 @@ function fireRdvBrevoUpsert(params: {
         ...(params.programmeCategoryValue !== undefined
           ? { PROGRAMME: params.programmeCategoryValue }
           : {}),
+        ...(params.message ? { MESSAGE: params.message } : {}),
       },
     },
     params.listIds,
@@ -345,17 +363,28 @@ function fireAllLeadsBrevoUpsert(params: {
   phone: string;
   temperature: LeadTemperature;
   listId: number;
+  objectif?: "HABITER" | "INVESTIR";
+  purchaseTime?: "IMMEDIAT" | "6_MOIS" | "INDEFINI";
+  financingValidation?: "OUI" | "NON" | "EN_COURS";
 }) {
   const apiKey = process.env.BREVO_API_KEY;
   if (!apiKey) return;
 
+  const horizonAchat = mapPurchaseTimeForBrevo(params.purchaseTime);
   void addContactToBrevoList(
     {
       email: params.email,
       firstName: params.firstName,
       lastName: params.lastName,
       phone: params.phone,
-      attributes: { TEMPERATURE: params.temperature },
+      attributes: {
+        TEMPERATURE: params.temperature,
+        ...(params.objectif !== undefined ? { OBJECTIF: params.objectif } : {}),
+        ...(horizonAchat !== undefined ? { HORIZON_ACHAT: horizonAchat } : {}),
+        ...(params.financingValidation !== undefined
+          ? { FINANCEMENT: params.financingValidation }
+          : {}),
+      },
     },
     params.listId,
     apiKey,
@@ -471,6 +500,7 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
           );
         }
 
+        const horizonAchatForBrevo = mapPurchaseTimeForBrevo(purchaseTime);
         try {
           const result = await addContactToBrevoList(
             {
@@ -478,7 +508,16 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
               firstName: prenom || nom.split(" ")[0] || nom,
               lastName: nom,
               phone: telephone,
-              attributes: { TEMPERATURE: "COLD" },
+              attributes: {
+                TEMPERATURE: "COLD",
+                ...(objectif !== undefined ? { OBJECTIF: objectif } : {}),
+                ...(horizonAchatForBrevo !== undefined
+                  ? { HORIZON_ACHAT: horizonAchatForBrevo }
+                  : {}),
+                ...(financingValidation !== undefined
+                  ? { FINANCEMENT: financingValidation }
+                  : {}),
+              },
             },
             targetListIds,
             apiKey,
@@ -556,6 +595,9 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
           phone: telephone,
           temperature,
           listId: allLeadsListId,
+          objectif,
+          purchaseTime,
+          financingValidation,
         });
       }
 
@@ -681,6 +723,7 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
           appointmentDate: dateValue,
           appointmentTime: appointmentTime,
           listIds: rdvUpsertListIds,
+          message,
         });
       }
 

@@ -6,6 +6,7 @@ import {
   mapFinancingValidation,
   mapObjective,
   mapPurchaseTime,
+  mapPurchaseTimeForBrevo,
   normalizePhoneE164,
   type GreenCityLeadPayload,
 } from "@repo/core";
@@ -88,6 +89,9 @@ export async function pushLeadToGreenCity(
     phone: phoneMobile,
     temperature,
     source,
+    objectif: lead.objectif,
+    horizonAchat: mapPurchaseTimeForBrevo(lead.horizonAchat),
+    financement: lead.financement,
   });
 
   // COLD stops here: no GreenCity write, no residence resolution. The
@@ -177,6 +181,9 @@ function upsertToAllLeadsList(params: {
   phone: string;
   temperature: string;
   source: string;
+  objectif?: string;
+  horizonAchat?: string;
+  financement?: string;
 }) {
   const apiKey = process.env.BREVO_API_KEY;
   const listIdRaw = process.env.BREVO_ALL_LEADS_LIST_ID;
@@ -199,6 +206,13 @@ function upsertToAllLeadsList(params: {
       attributes: {
         TEMPERATURE: params.temperature,
         SOURCE_LP: SOURCE_LP_FB_ADS,
+        ...(params.objectif !== undefined ? { OBJECTIF: params.objectif } : {}),
+        ...(params.horizonAchat !== undefined
+          ? { HORIZON_ACHAT: params.horizonAchat }
+          : {}),
+        ...(params.financement !== undefined
+          ? { FINANCEMENT: params.financement }
+          : {}),
       },
     },
     listId,

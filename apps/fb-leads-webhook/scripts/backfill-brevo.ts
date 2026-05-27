@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import {
   addContactToBrevoList,
   computeTemperature,
+  mapPurchaseTimeForBrevo,
   normalizePhoneE164,
 } from "@repo/core";
 
@@ -183,6 +184,7 @@ async function main() {
       continue;
     }
 
+    const horizonAchatForBrevo = mapPurchaseTimeForBrevo(horizonAchat);
     const result = await addContactToBrevoList(
       {
         email,
@@ -192,6 +194,13 @@ async function main() {
         attributes: {
           TEMPERATURE: temperature,
           SOURCE_LP: SOURCE_LP_FB_ADS,
+          ...(objectif !== undefined ? { OBJECTIF: objectif } : {}),
+          ...(horizonAchatForBrevo !== undefined
+            ? { HORIZON_ACHAT: horizonAchatForBrevo }
+            : {}),
+          ...(financement !== undefined
+            ? { FINANCEMENT: financement }
+            : {}),
         },
       },
       listId,

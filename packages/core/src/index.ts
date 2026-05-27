@@ -11,6 +11,7 @@ export { normalizePhoneE164 } from "./phone";
 export {
   mapObjective,
   mapPurchaseTime,
+  mapPurchaseTimeForBrevo,
   mapFinancingValidation,
   computeTemperature,
 } from "./api-routes";
