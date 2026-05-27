@@ -16,7 +16,7 @@ Chiffrer tous les `.env` en `.env.gpg` :
 
 ```bash
 for app in fb-leads-webhook home-spirit-2 l-archipel leads park-view revelation; do
-  gpg --symmetric --cipher-algo AES256 --batch --yes --passphrase 'monmeilleurbien' \
+  gpg --symmetric --cipher-algo AES256 --batch --yes --passphrase '<PASSPHRASE>' \
     -o "apps/$app/.env.gpg" "apps/$app/.env"
 done
 ```
@@ -25,7 +25,7 @@ Déchiffrer tous les `.env.gpg` en `.env` :
 
 ```bash
 for app in fb-leads-webhook home-spirit-2 l-archipel leads park-view revelation; do
-  gpg --decrypt --batch --yes --passphrase 'monmeilleurbien' \
+  gpg --decrypt --batch --yes --passphrase '<PASSPHRASE>' \
     -o "apps/$app/.env" "apps/$app/.env.gpg"
 done
 ```
