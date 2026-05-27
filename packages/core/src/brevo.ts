@@ -71,6 +71,12 @@ export async function addContactToBrevoList(
       attributes,
       listIds: ids,
       updateEnabled: true,
+      // Sans ce flag, Brevo refuse l'upsert (400 duplicate_parameter) quand
+      // un identifiant unique (SMS surtout, parfois email) est deja attache
+      // a un autre contact. forceMerge: true fusionne les deux contacts en
+      // gardant celui au last_modified le plus recent, ce qui evite que des
+      // leads (notamment FB COLD) disparaissent de "Tous leads".
+      forceMerge: true,
     }),
   });
 
