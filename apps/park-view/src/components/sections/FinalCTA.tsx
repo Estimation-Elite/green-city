@@ -1,8 +1,7 @@
 import { Clock, Shield } from "lucide-react";
-import { LeadForm } from "@/components/ui/LeadForm";
-import { LiveViewerCount } from "@/components/ui/LiveViewerCount";
+import { BrochureForm } from "@repo/ui";
 import { LotsAvailableBadge } from "@/components/ui/LotsAvailableBadge";
-import { socialProofData } from "@/data/home-spirit";
+import { brochureData, siteConfig, socialProofData } from "@/data/home-spirit";
 
 export function FinalCTA() {
   return (
@@ -48,17 +47,19 @@ export function FinalCTA() {
             </a> */}
           </div>
 
-          {/* Formulaire complet */}
+          {/* Formulaire brochure multi-step */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-            <LiveViewerCount variant="dark" className="mb-4" />
             <h3 className="text-xl font-bold mb-1">
-              Contactez-nous dès maintenant
+              Téléchargez la brochure
             </h3>
             <p className="text-white/60 text-sm mb-6">
-              Remplissez le formulaire ci-dessous pour recevoir votre
-              documentation complète et être rappelé(e) par un conseiller.
+              Remplissez le formulaire pour recevoir votre documentation complète.
             </p>
-            <LeadForm variant="dark" buttonLabel="Envoyer ma demande" />
+            <BrochureForm
+              pdfUrl={brochureData.pdfUrl}
+              pdfFilename={brochureData.pdfFilename}
+              residenceRef={siteConfig.projectName}
+            />
           </div>
         </div>
       </div>

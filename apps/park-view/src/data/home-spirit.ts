@@ -1,7 +1,12 @@
 export const siteConfig = {
-  projectName: "Home Spirit 2",
+  projectName: "Park View",
   city: "Toulouse",
   developer: "Sporting Promotion & GreenCity Immobilier",
+};
+
+export const brochureData = {
+  pdfUrl: "/documents/ParkView-Brochure.pdf",
+  pdfFilename: "ParkView-Brochure.pdf",
 };
 
 export const headerData = {
