@@ -105,17 +105,18 @@ export function mapPurchaseTime(
 }
 
 // HORIZON_ACHAT côté Brevo est un attribut Catégorie avec un schéma en
-// buckets mois (0_3M, 3_6M, 6_12M, 12M_PLUS) — granularité commerciale
-// historique. Brevo drop silencieusement toute valeur hors-schéma, donc on
-// mappe les 3 réponses du formulaire vers les 2 buckets courts. INDEFINI
-// n'a pas d'équivalent sémantique propre (≠ "12M+") → on omet l'attribut.
+// buckets mois (0_3M, 3_6M, 6_12M, 12M_PLUS, NON_DEFINI) — granularité
+// commerciale historique étendue avec NON_DEFINI pour couvrir les leads
+// formulaire « je m'informe ». Brevo drop silencieusement toute valeur
+// hors-schéma, donc on mappe explicitement les 3 réponses du formulaire.
 export function mapPurchaseTimeForBrevo(
   value?: "IMMEDIAT" | "6_MOIS" | "INDEFINI",
-): "0_3M" | "3_6M" | undefined {
-  if (!value || value === "INDEFINI") return undefined;
-  const map: Record<string, "0_3M" | "3_6M"> = {
+): "0_3M" | "3_6M" | "NON_DEFINI" | undefined {
+  if (!value) return undefined;
+  const map: Record<string, "0_3M" | "3_6M" | "NON_DEFINI"> = {
     IMMEDIAT: "0_3M",
     "6_MOIS": "3_6M",
+    INDEFINI: "NON_DEFINI",
   };
   return map[value];
 }
