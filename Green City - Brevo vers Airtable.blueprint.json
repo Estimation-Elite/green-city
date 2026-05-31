@@ -1,0 +1,834 @@
+{
+    "name": "Green City - Brevo vers Airtable",
+    "flow": [
+        {
+            "id": 1,
+            "module": "sendinblue:ListContactsInList",
+            "version": 2,
+            "parameters": {
+                "__IMTCONN__": 4815417
+            },
+            "mapper": {
+                "limit": "100",
+                "listId": 18,
+                "modifiedSince": "{{addMinutes(now; -60)}}"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "listId": {
+                            "mode": "chose",
+                            "label": "Green City - Tous leads"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "sendinblue2"
+                            },
+                            "label": "Maxime Brevo connection"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:sendinblue2",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "listId",
+                        "type": "select",
+                        "label": "List",
+                        "required": true
+                    },
+                    {
+                        "name": "modifiedSince",
+                        "type": "date",
+                        "label": "Modified since"
+                    },
+                    {
+                        "name": "limit",
+                        "type": "uinteger",
+                        "label": "Limit",
+                        "required": true
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "__IMTLENGTH__",
+                        "type": "uinteger",
+                        "label": "Total number of bundles"
+                    },
+                    {
+                        "name": "__IMTINDEX__",
+                        "type": "uinteger",
+                        "label": "Bundle order position"
+                    },
+                    {
+                        "name": "email",
+                        "type": "email",
+                        "label": "Email"
+                    },
+                    {
+                        "name": "id",
+                        "type": "number",
+                        "label": "Contact Id"
+                    },
+                    {
+                        "name": "emailBlacklisted",
+                        "type": "boolean",
+                        "label": "Email blacklisted"
+                    },
+                    {
+                        "name": "smsBlacklisted",
+                        "type": "boolean",
+                        "label": "Sms blacklisted"
+                    },
+                    {
+                        "name": "createdAt",
+                        "type": "date",
+                        "label": "Created at"
+                    },
+                    {
+                        "name": "modifiedAt",
+                        "type": "text",
+                        "label": "Modified at"
+                    },
+                    {
+                        "name": "attributes",
+                        "spec": [
+                            {
+                                "name": "LASTNAME",
+                                "type": "text",
+                                "label": "LASTNAME"
+                            },
+                            {
+                                "name": "FIRSTNAME",
+                                "type": "text",
+                                "label": "FIRSTNAME"
+                            },
+                            {
+                                "name": "SMS",
+                                "type": "text",
+                                "label": "SMS"
+                            },
+                            {
+                                "name": "EXT_ID",
+                                "type": "text",
+                                "label": "EXT_ID"
+                            },
+                            {
+                                "name": "LANDLINE_NUMBER",
+                                "type": "text",
+                                "label": "LANDLINE_NUMBER"
+                            },
+                            {
+                                "name": "CONTACT_TIMEZONE",
+                                "type": "text",
+                                "label": "CONTACT_TIMEZONE"
+                            },
+                            {
+                                "name": "JOB_TITLE",
+                                "type": "text",
+                                "label": "JOB_TITLE"
+                            },
+                            {
+                                "name": "LINKEDIN",
+                                "type": "text",
+                                "label": "LINKEDIN"
+                            },
+                            {
+                                "name": "PROGRAMME",
+                                "type": "select",
+                                "label": "PROGRAMME",
+                                "options": [
+                                    {
+                                        "label": "REVELATION",
+                                        "value": 2,
+                                        "valueStr": "2"
+                                    },
+                                    {
+                                        "label": "ARCHIPEL",
+                                        "value": 1,
+                                        "valueStr": "1"
+                                    },
+                                    {
+                                        "label": "HOME_SPIRIT2",
+                                        "value": 3,
+                                        "valueStr": "3"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "SOURCE_LP",
+                                "type": "select",
+                                "label": "SOURCE_LP",
+                                "options": [
+                                    {
+                                        "label": "ARCHIPEL_LP",
+                                        "value": 1,
+                                        "valueStr": "1"
+                                    },
+                                    {
+                                        "label": "FB_ADS",
+                                        "value": 4,
+                                        "valueStr": "4"
+                                    },
+                                    {
+                                        "label": "HOME_SPIRIT2_LP",
+                                        "value": 3,
+                                        "valueStr": "3"
+                                    },
+                                    {
+                                        "label": "REVELATION_LP",
+                                        "value": 2,
+                                        "valueStr": "2"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "ETAPE_NURTURE",
+                                "type": "select",
+                                "label": "ETAPE_NURTURE",
+                                "options": [
+                                    {
+                                        "label": "ACTIVE",
+                                        "value": 2,
+                                        "valueStr": "2"
+                                    },
+                                    {
+                                        "label": "ENGAGED",
+                                        "value": 3,
+                                        "valueStr": "3"
+                                    },
+                                    {
+                                        "label": "EXIT",
+                                        "value": 5,
+                                        "valueStr": "5"
+                                    },
+                                    {
+                                        "label": "HOT",
+                                        "value": 4,
+                                        "valueStr": "4"
+                                    },
+                                    {
+                                        "label": "NEW",
+                                        "value": 1,
+                                        "valueStr": "1"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "SCORE_NURTURE",
+                                "type": "number",
+                                "label": "SCORE_NURTURE"
+                            },
+                            {
+                                "name": "DATE_ENTREE_NURTURE",
+                                "type": "text",
+                                "label": "DATE_ENTREE_NURTURE"
+                            },
+                            {
+                                "name": "RDV_PRIS",
+                                "type": "boolean",
+                                "label": "RDV_PRIS"
+                            },
+                            {
+                                "name": "TELEPHONE_LEAD",
+                                "type": "text",
+                                "label": "TELEPHONE_LEAD"
+                            },
+                            {
+                                "name": "TYPE_PROJET",
+                                "type": "select",
+                                "label": "TYPE_PROJET",
+                                "options": [
+                                    {
+                                        "label": "INV",
+                                        "value": 2,
+                                        "valueStr": "2"
+                                    },
+                                    {
+                                        "label": "NSP",
+                                        "value": 3,
+                                        "valueStr": "3"
+                                    },
+                                    {
+                                        "label": "RP",
+                                        "value": 1,
+                                        "valueStr": "1"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "HORIZON_ACHAT",
+                                "type": "select",
+                                "label": "HORIZON_ACHAT",
+                                "options": [
+                                    {
+                                        "label": "12M_PLUS",
+                                        "value": 4,
+                                        "valueStr": "4"
+                                    },
+                                    {
+                                        "label": "0_3M",
+                                        "value": 1,
+                                        "valueStr": "1"
+                                    },
+                                    {
+                                        "label": "3_6M",
+                                        "value": 2,
+                                        "valueStr": "2"
+                                    },
+                                    {
+                                        "label": "6_12M",
+                                        "value": 3,
+                                        "valueStr": "3"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "BUDGET_LEAD",
+                                "type": "number",
+                                "label": "BUDGET_LEAD"
+                            },
+                            {
+                                "name": "FINANCEMENT_AVANCE",
+                                "type": "boolean",
+                                "label": "FINANCEMENT_AVANCE"
+                            },
+                            {
+                                "name": "CTA_DERNIER_CLIC",
+                                "type": "text",
+                                "label": "CTA_DERNIER_CLIC"
+                            },
+                            {
+                                "name": "RDV_DATE",
+                                "type": "text",
+                                "label": "RDV_DATE"
+                            },
+                            {
+                                "name": "RDV_TIME",
+                                "type": "text",
+                                "label": "RDV_TIME"
+                            },
+                            {
+                                "name": "TEMPERATURE",
+                                "type": "text",
+                                "label": "TEMPERATURE"
+                            },
+                            {
+                                "name": "OBJECTIF",
+                                "type": "text",
+                                "label": "OBJECTIF"
+                            },
+                            {
+                                "name": "FINANCEMENT",
+                                "type": "text",
+                                "label": "FINANCEMENT"
+                            },
+                            {
+                                "name": "MESSAGE",
+                                "type": "text",
+                                "label": "MESSAGE"
+                            }
+                        ],
+                        "type": "collection",
+                        "label": "Attributes"
+                    },
+                    {
+                        "name": "listIds",
+                        "type": "array",
+                        "label": "Lists"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 4,
+            "module": "airtable:ActionSearchRecords",
+            "version": 3,
+            "parameters": {
+                "__IMTCONN__": 7567256
+            },
+            "mapper": {
+                "base": "appqvsMS9Lpc8K49t",
+                "view": "viwy4ngxYdqTb1UN3",
+                "table": "tblv13HSxx0jEvOUC",
+                "fields": [
+                    "Email"
+                ],
+                "formula": "{Email} = \"{{1.email}}\"",
+                "maxRecords": "10",
+                "useColumnId": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "base": {
+                            "mode": "chose",
+                            "label": "Leads Green City"
+                        },
+                        "sort": {
+                            "mode": "chose"
+                        },
+                        "view": {
+                            "mode": "chose",
+                            "label": "Grid view"
+                        },
+                        "table": {
+                            "mode": "chose",
+                            "label": "Table 1"
+                        },
+                        "fields": {
+                            "mode": "chose",
+                            "label": [
+                                "Email"
+                            ]
+                        },
+                        "useColumnId": {
+                            "mode": "chose"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "airtable3"
+                            },
+                            "label": "Green City Leads - Brevo to Airtable (User ID: usrYPdw0H67MCmw8C)"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:airtable3,airtable2",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "base",
+                        "type": "select",
+                        "label": "Base",
+                        "required": true
+                    },
+                    {
+                        "name": "useColumnId",
+                        "type": "boolean",
+                        "label": "Use Column ID",
+                        "required": true
+                    },
+                    {
+                        "name": "table",
+                        "type": "select",
+                        "label": "Table",
+                        "required": true
+                    },
+                    {
+                        "name": "formula",
+                        "type": "text",
+                        "label": "Formula"
+                    },
+                    {
+                        "name": "maxRecords",
+                        "type": "integer",
+                        "label": "Limit"
+                    },
+                    {
+                        "name": "sort",
+                        "spec": [
+                            {
+                                "name": "field",
+                                "type": "select",
+                                "label": "Field",
+                                "dynamic": true,
+                                "options": []
+                            },
+                            {
+                                "name": "direction",
+                                "type": "select",
+                                "label": "Direction",
+                                "options": [
+                                    {
+                                        "label": "Descending",
+                                        "value": "desc"
+                                    },
+                                    {
+                                        "label": "Ascending",
+                                        "value": "asc"
+                                    }
+                                ]
+                            }
+                        ],
+                        "type": "array",
+                        "label": "Sort"
+                    },
+                    {
+                        "name": "view",
+                        "type": "select",
+                        "label": "View"
+                    },
+                    {
+                        "name": "fields",
+                        "type": "select",
+                        "label": "Output Fields",
+                        "multiple": true
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "__IMTLENGTH__",
+                        "type": "uinteger",
+                        "label": "Total number of bundles"
+                    },
+                    {
+                        "name": "__IMTINDEX__",
+                        "type": "uinteger",
+                        "label": "Bundle order position"
+                    },
+                    {
+                        "name": "id",
+                        "type": "text",
+                        "label": "ID"
+                    },
+                    {
+                        "name": "createdTime",
+                        "type": "date",
+                        "label": "Created Time"
+                    },
+                    {
+                        "name": "Email",
+                        "type": "text",
+                        "label": "Email"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 2,
+            "module": "airtable:upsertRecord",
+            "version": 3,
+            "parameters": {
+                "__IMTCONN__": 7567256
+            },
+            "mapper": {
+                "base": "appqvsMS9Lpc8K49t",
+                "typecast": true,
+                "useColumnId": false,
+                "table": "tblv13HSxx0jEvOUC",
+                "recordId": "{{4.id}}",
+                "record": {
+                    "fldGKOGFwFYeuvxbz": "{{1.attributes.FIRSTNAME}}",
+                    "fldW6pdiVUfvYzlRs": "{{1.attributes.LASTNAME}}",
+                    "fldLwTdjC3FSfhHwl": "{{1.attributes.SMS}}",
+                    "fldgQbGTYGkzquX3p": "{{1.email}}",
+                    "fld513M06lH8Z1tBC": "{{1.attributes.TEMPERATURE}}",
+                    "fldOMgXHrP2QRP7Qw": "{{switch(1.attributes.SOURCE_LP; 1; \"Archipel\"; 2; \"RÃ©vÃ©lation\"; 3; \"Home Spirit 2\"; 4; \"FB ADS\")}}",
+                    "fld3YtJ7WHpIl6Uab": "{{switch(1.attributes.PROGRAMME; 1; \"Archipel\"; 2; \"RÃ©vÃ©lation\"; 3; \"Home Spirit 2\"; 4; \"FB ADS\")}}",
+                    "fldsWmVhJdEc0qd19": "{{if(1.attributes.RDV_DATE; 1.attributes.RDV_DATE + \"T\" + 1.attributes.RDV_TIME + \":00\"; )}}",
+                    "fld1qJ0XmDzdgKE3l": "{{1.attributes.RDV_PRIS}}",
+                    "fldlTf053BOooB7Na": "{{switch(1.attributes.OBJECTIF; \"HABITER\"; \"Résidence principale\"; \"INVESTIR\"; \"Investissement\")}}",
+                    "fldEn6zmlw6I9EOXp": "{{switch(1.attributes.HORIZON_ACHAT; 1; \"0-3 mois\"; 2; \"3-6 mois\"; 3; \"6-12 mois\"; 4; \"12 mois et plus\"; 5; \"Non défini\"; \"\")}}",
+                    "fldbilxuMUCKdqiTz": "{{switch(1.attributes.FINANCEMENT; \"OUI\"; \"Validé\"; \"NON\"; \"Non\"; \"EN_COURS\"; \"En cours\")}}",
+                    "fldQwEE8xwDejyHQr": "{{1.attributes.MESSAGE}}"
+                }
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0
+                },
+                "restore": {
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "label": "Green City Leads - Brevo to Airtable (User ID: usrYPdw0H67MCmw8C)",
+                            "data": {
+                                "scoped": "true",
+                                "connection": "airtable3"
+                            }
+                        }
+                    },
+                    "expect": {
+                        "base": {
+                            "label": "Leads Green City"
+                        },
+                        "typecast": {
+                            "mode": "chose"
+                        },
+                        "useColumnId": {
+                            "mode": "chose"
+                        },
+                        "table": {
+                            "label": "Table 1"
+                        },
+                        "record": {
+                            "nested": {
+                                "fld513M06lH8Z1tBC": {
+                                    "mode": "edit"
+                                },
+                                "fld3YtJ7WHpIl6Uab": {
+                                    "mode": "edit"
+                                },
+                                "fld1qJ0XmDzdgKE3l": {
+                                    "mode": "edit"
+                                },
+                                "fldlTf053BOooB7Na": {
+                                    "mode": "edit"
+                                },
+                                "fldEn6zmlw6I9EOXp": {
+                                    "mode": "edit"
+                                },
+                                "fldbilxuMUCKdqiTz": {
+                                    "mode": "edit"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:airtable3,airtable2",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "base",
+                        "type": "select",
+                        "label": "Base",
+                        "required": true
+                    },
+                    {
+                        "name": "typecast",
+                        "type": "boolean",
+                        "label": "Smart links",
+                        "required": true
+                    },
+                    {
+                        "name": "useColumnId",
+                        "type": "boolean",
+                        "label": "Use Column ID",
+                        "required": true
+                    },
+                    {
+                        "name": "table",
+                        "type": "select",
+                        "label": "Table",
+                        "required": true
+                    },
+                    {
+                        "name": "recordId",
+                        "type": "text",
+                        "label": "Record ID"
+                    },
+                    {
+                        "name": "record",
+                        "type": "collection",
+                        "label": "Record",
+                        "spec": [
+                            {
+                                "name": "fldGKOGFwFYeuvxbz",
+                                "type": "text",
+                                "label": "PrÃ©nom"
+                            },
+                            {
+                                "name": "fldW6pdiVUfvYzlRs",
+                                "type": "text",
+                                "label": "Nom"
+                            },
+                            {
+                                "name": "fldLwTdjC3FSfhHwl",
+                                "type": "text",
+                                "label": "TÃ©lÃ©phone"
+                            },
+                            {
+                                "name": "fldgQbGTYGkzquX3p",
+                                "type": "text",
+                                "label": "Email"
+                            },
+                            {
+                                "name": "fld513M06lH8Z1tBC",
+                                "type": "select",
+                                "label": "TempÃ©rature",
+                                "mode": "edit"
+                            },
+                            {
+                                "name": "fldOMgXHrP2QRP7Qw",
+                                "type": "text",
+                                "label": "Source"
+                            },
+                            {
+                                "name": "fld3YtJ7WHpIl6Uab",
+                                "type": "select",
+                                "label": "Programme",
+                                "mode": "edit"
+                            },
+                            {
+                                "name": "fldsWmVhJdEc0qd19",
+                                "type": "date",
+                                "label": "RDV Date",
+                                "time": true
+                            },
+                            {
+                                "name": "fld1qJ0XmDzdgKE3l",
+                                "type": "boolean",
+                                "label": "RDV Pris"
+                            },
+                            {
+                                "name": "fldlTf053BOooB7Na",
+                                "type": "select",
+                                "label": "Objectif",
+                                "mode": "edit"
+                            },
+                            {
+                                "name": "fldEn6zmlw6I9EOXp",
+                                "type": "select",
+                                "label": "Horizon d'achat",
+                                "mode": "edit"
+                            },
+                            {
+                                "name": "fldbilxuMUCKdqiTz",
+                                "type": "select",
+                                "label": "Financement",
+                                "mode": "edit"
+                            },
+                            {
+                                "name": "fldQwEE8xwDejyHQr",
+                                "type": "text",
+                                "label": "Message"
+                            }
+                        ]
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "id",
+                        "type": "text",
+                        "label": "ID"
+                    },
+                    {
+                        "name": "createdTime",
+                        "type": "date",
+                        "label": "Created Time"
+                    },
+                    {
+                        "name": "PrÃ©nom",
+                        "label": "PrÃ©nom",
+                        "type": "text"
+                    },
+                    {
+                        "name": "Nom",
+                        "label": "Nom",
+                        "type": "text"
+                    },
+                    {
+                        "name": "TÃ©lÃ©phone",
+                        "label": "TÃ©lÃ©phone",
+                        "type": "text"
+                    },
+                    {
+                        "name": "Email",
+                        "label": "Email",
+                        "type": "text"
+                    },
+                    {
+                        "name": "TempÃ©rature",
+                        "label": "TempÃ©rature",
+                        "type": "text"
+                    },
+                    {
+                        "name": "Source",
+                        "label": "Source",
+                        "type": "text"
+                    },
+                    {
+                        "name": "Programme",
+                        "label": "Programme",
+                        "type": "text"
+                    },
+                    {
+                        "name": "RDV Date",
+                        "label": "RDV Date",
+                        "type": "date",
+                        "time": true
+                    },
+                    {
+                        "name": "RDV Pris",
+                        "label": "RDV Pris",
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "Created",
+                        "label": "Created",
+                        "type": "date"
+                    },
+                    {
+                        "name": "Last modified",
+                        "label": "Last modified",
+                        "type": "date"
+                    },
+                    {
+                        "name": "Objectif",
+                        "label": "Objectif",
+                        "type": "text"
+                    },
+                    {
+                        "name": "Horizon d'achat",
+                        "label": "Horizon d'achat",
+                        "type": "text"
+                    },
+                    {
+                        "name": "Financement",
+                        "label": "Financement",
+                        "type": "text"
+                    },
+                    {
+                        "name": "Message",
+                        "label": "Message",
+                        "type": "text",
+                        "multiline": true
+                    }
+                ]
+            }
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu1.make.com",
+        "notes": []
+    }
+}
