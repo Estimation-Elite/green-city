@@ -50,41 +50,71 @@ export async function addContactToBrevoList(
   apiKey: string,
 ): Promise<AddContactToListResult> {
   const normalizedPhone = contact.phone ? normalizePhoneE164(contact.phone) : null;
-  const attributes: Record<string, unknown> = {
+  // Attributs hors SMS : ce qu'on renverra en repli si Brevo refuse le numero.
+  const baseAttributes: Record<string, unknown> = {
     ...(contact.firstName ? { FIRSTNAME: contact.firstName } : {}),
     ...(contact.lastName ? { LASTNAME: contact.lastName } : {}),
-    ...(normalizedPhone ? { SMS: normalizedPhone } : {}),
     ...contact.attributes,
+  };
+  const attributes: Record<string, unknown> = {
+    ...baseAttributes,
+    ...(normalizedPhone ? { SMS: normalizedPhone } : {}),
   };
 
   const ids = Array.isArray(listIds) ? listIds : [listIds];
 
-  const res = await fetchWithRetry(`${BREVO_API_BASE}/contacts`, {
-    method: "POST",
-    headers: {
-      "api-key": apiKey,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({
-      email: contact.email,
-      attributes,
-      listIds: ids,
-      updateEnabled: true,
-      // Sans ce flag, Brevo refuse l'upsert (400 duplicate_parameter) quand
-      // un identifiant unique (SMS surtout, parfois email) est deja attache
-      // a un autre contact. forceMerge: true fusionne les deux contacts en
-      // gardant celui au last_modified le plus recent, ce qui evite que des
-      // leads (notamment FB COLD) disparaissent de "Tous leads".
-      forceMerge: true,
-    }),
-  });
+  const post = (attrs: Record<string, unknown>) =>
+    fetchWithRetry(`${BREVO_API_BASE}/contacts`, {
+      method: "POST",
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        email: contact.email,
+        attributes: attrs,
+        listIds: ids,
+        updateEnabled: true,
+        // Sans ce flag, Brevo refuse l'upsert (400 duplicate_parameter) quand
+        // un identifiant unique (SMS surtout, parfois email) est deja attache
+        // a un autre contact. forceMerge: true fusionne les deux contacts en
+        // gardant celui au last_modified le plus recent, ce qui evite que des
+        // leads (notamment FB COLD) disparaissent de "Tous leads".
+        forceMerge: true,
+      }),
+    });
 
+  let res = await post(attributes);
   // Read as text first (never throws), then attempt JSON. Preserves the raw
   // response when Brevo returns non-JSON (HTML from an upstream proxy, empty
   // body on 201, etc.) — otherwise we'd log `body: undefined` and lose the
   // diagnostic content.
-  const rawBody = await res.text().catch(() => "");
+  let rawBody = await res.text().catch(() => "");
+
+  // Brevo valide le numero avec sa propre logique (plus stricte que
+  // normalizePhoneE164, purement syntaxique). Un SMS juge invalide fait
+  // echouer TOUT l'upsert (400 invalid_parameter) → le contact n'est pas cree
+  // et le lead disparait silencieusement de "Tous leads". On reessaie sans le
+  // SMS pour au moins enregistrer le contact (mieux vaut un lead sans tel
+  // qu'aucun lead).
+  if (
+    !res.ok &&
+    res.status === 400 &&
+    normalizedPhone &&
+    /invalid phone/i.test(rawBody)
+  ) {
+    console.warn(
+      JSON.stringify({
+        event: "brevo.upsert.retry_without_sms",
+        email: contact.email,
+        phone: normalizedPhone,
+      }),
+    );
+    res = await post(baseAttributes);
+    rawBody = await res.text().catch(() => "");
+  }
+
   let body: unknown = rawBody || undefined;
   try {
     if (rawBody) body = JSON.parse(rawBody);

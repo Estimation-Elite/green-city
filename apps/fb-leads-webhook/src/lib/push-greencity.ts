@@ -80,9 +80,12 @@ export async function pushLeadToGreenCity(
     financingValidation: lead.financement,
   });
 
-  // Every FB lead lands in Brevo "Tous leads" (fire-and-forget), regardless
-  // of temperature or GreenCity outcome.
-  upsertToAllLeadsList({
+  // Every FB lead lands in Brevo "Tous leads", regardless of temperature or
+  // GreenCity outcome. On AWAIT volontairement : en fire-and-forget, la
+  // reponse HTTP partait avant la fin du fetch Brevo et la promesse flottante
+  // etait coupee (contact jamais cree, aucun log). upsertToAllLeadsList
+  // n'echoue jamais (try/catch interne), donc await ne risque pas de 500.
+  await upsertToAllLeadsList({
     email: lead.email,
     firstName,
     lastName,
@@ -174,7 +177,7 @@ const SOURCE_LP_FB_ADS = 4;
 // workflows can segment FB-origin contacts (e.g. FB-specific nurturing
 // for COLD) without a dedicated list. LP-origin contacts do not set
 // SOURCE_LP today, which is how the two origins are distinguished.
-function upsertToAllLeadsList(params: {
+async function upsertToAllLeadsList(params: {
   email: string;
   firstName: string;
   lastName: string;
@@ -184,7 +187,7 @@ function upsertToAllLeadsList(params: {
   objectif?: string;
   horizonAchat?: string;
   financement?: string;
-}) {
+}): Promise<void> {
   const apiKey = process.env.BREVO_API_KEY;
   const listIdRaw = process.env.BREVO_ALL_LEADS_LIST_ID;
   const listId = listIdRaw ? Number(listIdRaw) : NaN;
@@ -197,44 +200,48 @@ function upsertToAllLeadsList(params: {
     return;
   }
 
-  void addContactToBrevoList(
-    {
-      email: params.email,
-      firstName: params.firstName,
-      lastName: params.lastName,
-      phone: params.phone,
-      attributes: {
-        TEMPERATURE: params.temperature,
-        SOURCE_LP: SOURCE_LP_FB_ADS,
-        ...(params.objectif !== undefined ? { OBJECTIF: params.objectif } : {}),
-        ...(params.horizonAchat !== undefined
-          ? { HORIZON_ACHAT: params.horizonAchat }
-          : {}),
-        ...(params.financement !== undefined
-          ? { FINANCEMENT: params.financement }
-          : {}),
+  // Jamais throw : l'appelant await ce upsert mais la reponse HTTP ne doit pas
+  // dependre de la sante de Brevo (un lead enregistre cote GreenCity ne doit
+  // pas remonter une 500 a cause de Brevo).
+  try {
+    const result = await addContactToBrevoList(
+      {
+        email: params.email,
+        firstName: params.firstName,
+        lastName: params.lastName,
+        phone: params.phone,
+        attributes: {
+          TEMPERATURE: params.temperature,
+          SOURCE_LP: SOURCE_LP_FB_ADS,
+          ...(params.objectif !== undefined
+            ? { OBJECTIF: params.objectif }
+            : {}),
+          ...(params.horizonAchat !== undefined
+            ? { HORIZON_ACHAT: params.horizonAchat }
+            : {}),
+          ...(params.financement !== undefined
+            ? { FINANCEMENT: params.financement }
+            : {}),
+        },
       },
-    },
-    listId,
-    apiKey,
-  )
-    .then((result) => {
-      if (!result.ok) {
-        logError("fb.brevo.upsert.failed", {
-          source: params.source,
-          email: params.email,
-          listId,
-          status: result.status,
-          body: result.body,
-        });
-      }
-    })
-    .catch((err) => {
-      logError("fb.brevo.upsert.threw", {
+      listId,
+      apiKey,
+    );
+    if (!result.ok) {
+      logError("fb.brevo.upsert.failed", {
         source: params.source,
         email: params.email,
         listId,
-        error: err instanceof Error ? err.message : String(err),
+        status: result.status,
+        body: result.body,
       });
+    }
+  } catch (err) {
+    logError("fb.brevo.upsert.threw", {
+      source: params.source,
+      email: params.email,
+      listId,
+      error: err instanceof Error ? err.message : String(err),
     });
+  }
 }
