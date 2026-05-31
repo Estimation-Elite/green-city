@@ -49,6 +49,23 @@ export async function POST(request: NextRequest) {
   }
 
   const lead = normalizeInboundLead(body);
+
+  // Trace toute réponse présente en entrée mais non reconnue par la
+  // classification, pour pouvoir enrichir les mots-clés avec les vrais
+  // libellés FB. Évite tout drop silencieux.
+  const unmapped: Array<[string, string | undefined, unknown]> = [
+    ["objectif", lead.objectif, body.objectif],
+    ["horizon_achat", lead.horizonAchat, body.horizon_achat],
+    ["financement", lead.financement, body.financement],
+  ];
+  for (const [field, normalized, raw] of unmapped) {
+    if (!normalized && typeof raw === "string" && raw.trim()) {
+      console.warn(
+        JSON.stringify({ event: "fb.inbound.unmapped_answer", field, raw }),
+      );
+    }
+  }
+
   const result = await pushLeadToGreenCity(lead, "FB lead inbound");
 
   if (!result.ok) {

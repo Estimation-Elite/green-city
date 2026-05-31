@@ -21,38 +21,6 @@ export interface NormalizedLead {
   message?: string;
 }
 
-const OBJECTIF_MAP: Record<string, NormalizedLead["objectif"]> = {
-  habiter: "HABITER",
-  "residence principale": "HABITER",
-  habiter_principal: "HABITER",
-  investir: "INVESTIR",
-  investissement: "INVESTIR",
-  invest: "INVESTIR",
-};
-
-const HORIZON_MAP: Record<string, NormalizedLead["horizonAchat"]> = {
-  immediat: "IMMEDIAT",
-  immediate: "IMMEDIAT",
-  "des que possible": "IMMEDIAT",
-  now: "IMMEDIAT",
-  "sous 6 mois": "6_MOIS",
-  "6 mois": "6_MOIS",
-  "dans 6 mois": "6_MOIS",
-  "6_mois": "6_MOIS",
-  "pas defini": "INDEFINI",
-  indefini: "INDEFINI",
-  "ne sait pas": "INDEFINI",
-};
-
-const FINANCEMENT_MAP: Record<string, NormalizedLead["financement"]> = {
-  oui: "OUI",
-  yes: "OUI",
-  non: "NON",
-  no: "NON",
-  "en cours": "EN_COURS",
-  en_cours: "EN_COURS",
-};
-
 function normalize(value: string): string {
   return value
     .normalize("NFD")
@@ -62,9 +30,54 @@ function normalize(value: string): string {
     .toLowerCase();
 }
 
-function pick<T>(map: Record<string, T>, value?: string): T | undefined {
+// Matching tolérant par mots-clés : les libellés FB sont souvent des phrases
+// (« Investir dans l'immobilier locatif », « Pas encore mais bientôt »…) qui ne
+// correspondent à aucune clé d'une table exacte. On classe donc sur des
+// mots-clés appliqués à la valeur normalisée (accents retirés, minuscules).
+// Toute réponse non reconnue retombe sur undefined (et est logguée côté route).
+function classifyObjectif(value?: string): NormalizedLead["objectif"] {
   if (!value) return undefined;
-  return map[normalize(value)];
+  const v = normalize(value);
+  if (
+    /invest|locatif|louer|rentab|defisc|pinel/.test(v)
+  ) {
+    return "INVESTIR";
+  }
+  if (/habit|principal|residence|vivre|primo|loger/.test(v)) {
+    return "HABITER";
+  }
+  return undefined;
+}
+
+function classifyHorizon(value?: string): NormalizedLead["horizonAchat"] {
+  if (!value) return undefined;
+  const v = normalize(value);
+  if (/immediat|tout de suite|des que|rapide|asap|now|3 mois|0-3/.test(v)) {
+    return "IMMEDIAT";
+  }
+  if (/6 mois|6mois|semestre|1 an|un an|12 mois|cette annee/.test(v)) {
+    return "6_MOIS";
+  }
+  if (
+    /pas|indefini|sais pas|informe|renseign|plus tard|long terme|reflexion/.test(
+      v,
+    )
+  ) {
+    return "INDEFINI";
+  }
+  return undefined;
+}
+
+function classifyFinancement(value?: string): NormalizedLead["financement"] {
+  if (!value) return undefined;
+  const v = normalize(value);
+  // EN_COURS d'abord : « en cours de validation » contient aussi « validation ».
+  if (/cours|attente|demande|etude/.test(v)) return "EN_COURS";
+  // Ne pas matcher « valid » : présent dans l'intitulé de la question
+  // (« avez-vous validé… »), pas dans la réponse.
+  if (/oui|yes|accord|obtenu/.test(v)) return "OUI";
+  if (/non|\bno\b|pas encore|aucun/.test(v)) return "NON";
+  return undefined;
 }
 
 function splitFullName(full: string): { firstName?: string; lastName?: string } {
@@ -94,9 +107,9 @@ export function normalizeInboundLead(input: InboundLead): NormalizedLead {
     result.lastName = split.lastName;
   }
 
-  result.objectif = pick(OBJECTIF_MAP, input.objectif);
-  result.horizonAchat = pick(HORIZON_MAP, input.horizon_achat);
-  result.financement = pick(FINANCEMENT_MAP, input.financement);
+  result.objectif = classifyObjectif(input.objectif);
+  result.horizonAchat = classifyHorizon(input.horizon_achat);
+  result.financement = classifyFinancement(input.financement);
 
   return result;
 }
