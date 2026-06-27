@@ -97,17 +97,9 @@ export async function pushLeadToGreenCity(
     financement: lead.financement,
   });
 
-  // COLD stops here: no GreenCity write, no residence resolution. The
-  // SOURCE_LP attribute on the Brevo contact is enough for FB-specific
-  // segmentation.
-  if (temperature === "COLD") {
-    logEvent("fb.lead.cold_processed", {
-      source,
-      email: lead.email,
-    });
-    return { ok: true, leadId: lead.email, temperature };
-  }
-
+  // Every lead is sent to GreenCity, regardless of temperature (COLD included).
+  // The Brevo "Tous leads" upsert above keeps the SOURCE_LP attribute for
+  // FB-specific segmentation.
   const residences = await resolveResidenceIds();
   if (residences.length === 0) {
     logError("fb.lead.no_residences", { source, email: lead.email });

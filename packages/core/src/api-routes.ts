@@ -417,6 +417,82 @@ function fireAllLeadsBrevoUpsert(params: {
     });
 }
 
+// Upsert a COLD lead into the Brevo nurturing list (which has an email
+// automation workflow attached). All leads now go to GreenCity, but COLD ones
+// keep feeding this nurturing list. Fire-and-forget: GreenCity is the source of
+// truth, so a Brevo outage must not surface as a form 500. Resolves the list id
+// from the handler options or BREVO_NURTURING_LIST_ID and no-ops if unset.
+function fireNurturingBrevoUpsert(params: {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  nurturingListId?: number;
+  objectif?: "HABITER" | "INVESTIR";
+  purchaseTime?: "IMMEDIAT" | "6_MOIS" | "INDEFINI";
+  financingValidation?: "OUI" | "NON" | "EN_COURS";
+}) {
+  const apiKey = process.env.BREVO_API_KEY;
+  const nurturingListId =
+    params.nurturingListId ??
+    (process.env.BREVO_NURTURING_LIST_ID
+      ? Number(process.env.BREVO_NURTURING_LIST_ID)
+      : undefined);
+  if (
+    !apiKey ||
+    typeof nurturingListId !== "number" ||
+    !Number.isInteger(nurturingListId) ||
+    nurturingListId <= 0
+  ) {
+    return;
+  }
+
+  const horizonAchat = mapPurchaseTimeForBrevo(params.purchaseTime);
+  void addContactToBrevoList(
+    {
+      email: params.email,
+      firstName: params.firstName,
+      lastName: params.lastName,
+      phone: params.phone,
+      attributes: {
+        TEMPERATURE: "COLD",
+        ...(params.objectif !== undefined ? { OBJECTIF: params.objectif } : {}),
+        ...(horizonAchat !== undefined ? { HORIZON_ACHAT: horizonAchat } : {}),
+        ...(params.financingValidation !== undefined
+          ? { FINANCEMENT: params.financingValidation }
+          : {}),
+      },
+    },
+    nurturingListId,
+    apiKey,
+  )
+    .then((result) => {
+      if (!result.ok) {
+        // TODO(Sentry): Sentry.captureMessage("brevo.nurturing.upsert.failed", { level: "error", extra: { email: params.email, listId: nurturingListId, status: result.status, body: result.body } })
+        console.error(
+          JSON.stringify({
+            event: "brevo.nurturing.upsert.failed",
+            email: params.email,
+            listId: nurturingListId,
+            status: result.status,
+            body: result.body,
+          }),
+        );
+      }
+    })
+    .catch((err) => {
+      // TODO(Sentry): Sentry.captureException(err, { extra: { email: params.email, listId: nurturingListId, phase: "brevo.nurturing.upsert" } })
+      console.error(
+        JSON.stringify({
+          event: "brevo.nurturing.upsert.threw",
+          email: params.email,
+          listId: nurturingListId,
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      );
+    });
+}
+
 export function createLeadHandler(options: LeadHandlerOptions = {}) {
   return async function leadHandler(request: NextRequest) {
     try {
@@ -468,105 +544,6 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
 
       const allLeadsListId = resolveAllLeadsListId(options);
 
-      // COLD leads are not sent to GreenCity — pushed to Brevo nurturing for
-      // email automation, and also to "Tous leads" if configured.
-      if (temperature === "COLD") {
-        const apiKey = process.env.BREVO_API_KEY;
-        const nurturingListId =
-          options.nurturingListId ??
-          (process.env.BREVO_NURTURING_LIST_ID
-            ? Number(process.env.BREVO_NURTURING_LIST_ID)
-            : undefined);
-
-        const coldLeadErrorMessage =
-          "Impossible d'enregistrer votre demande pour le moment. Merci de réessayer dans quelques instants.";
-
-        const targetListIds = [allLeadsListId, nurturingListId].filter(
-          (id): id is number => typeof id === "number",
-        );
-
-        if (!apiKey || targetListIds.length === 0) {
-          // TODO(Sentry): Sentry.captureMessage("brevo.config.missing", { level: "error" }) — firing at runtime means the deploy is misconfigured
-          console.error(
-            JSON.stringify({
-              event: "brevo.config.missing",
-              hasApiKey: Boolean(apiKey),
-              hasAllLeadsListId: Boolean(allLeadsListId),
-              hasNurturingListId: Boolean(nurturingListId),
-            }),
-          );
-          return NextResponse.json(
-            { error: coldLeadErrorMessage },
-            { status: 500 },
-          );
-        }
-
-        const horizonAchatForBrevo = mapPurchaseTimeForBrevo(purchaseTime);
-        try {
-          const result = await addContactToBrevoList(
-            {
-              email,
-              firstName: prenom || nom.split(" ")[0] || nom,
-              lastName: nom,
-              phone: telephone,
-              attributes: {
-                TEMPERATURE: "COLD",
-                ...(objectif !== undefined ? { OBJECTIF: objectif } : {}),
-                ...(horizonAchatForBrevo !== undefined
-                  ? { HORIZON_ACHAT: horizonAchatForBrevo }
-                  : {}),
-                ...(financingValidation !== undefined
-                  ? { FINANCEMENT: financingValidation }
-                  : {}),
-              },
-            },
-            targetListIds,
-            apiKey,
-          );
-          if (!result.ok) {
-            // TODO(Sentry): Sentry.captureMessage("brevo.lead.upsert.failed", { level: "error", extra: { email, listIds: targetListIds, status: result.status, body: result.body } })
-            console.error(
-              JSON.stringify({
-                event: "brevo.lead.upsert.failed",
-                email,
-                listIds: targetListIds,
-                status: result.status,
-                body: result.body,
-              }),
-            );
-            return NextResponse.json(
-              { error: coldLeadErrorMessage },
-              { status: 500 },
-            );
-          }
-        } catch (err) {
-          // TODO(Sentry): Sentry.captureException(err, { extra: { email, listIds: targetListIds, phase: "brevo.lead.upsert" } })
-          console.error(
-            JSON.stringify({
-              event: "brevo.lead.upsert.threw",
-              email,
-              listIds: targetListIds,
-              error: err instanceof Error ? err.message : String(err),
-            }),
-          );
-          return NextResponse.json(
-            { error: coldLeadErrorMessage },
-            { status: 500 },
-          );
-        }
-
-        if (formType === "brochure") {
-          fireBrochureAcknowledgment({
-            email,
-            name: nom,
-            firstName: prenom || nom.split(" ")[0] || nom,
-            programme: options.defaultResidenceName ?? "",
-          });
-        }
-
-        return NextResponse.json({ ok: true, temperature });
-      }
-
       const normalizedAppointmentDate = appointmentDate
         ? new Date(appointmentDate).toISOString()
         : undefined;
@@ -596,6 +573,21 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
           phone: telephone,
           temperature,
           listId: allLeadsListId,
+          objectif,
+          purchaseTime,
+          financingValidation,
+        });
+      }
+
+      // COLD leads still feed the Brevo nurturing automation (fire-and-forget:
+      // GreenCity already accepted the lead, a Brevo outage must not 500).
+      if (temperature === "COLD") {
+        fireNurturingBrevoUpsert({
+          email,
+          firstName: prenom || nom.split(" ")[0] || nom,
+          lastName: nom,
+          phone: telephone,
+          nurturingListId: options.nurturingListId,
           objectif,
           purchaseTime,
           financingValidation,
