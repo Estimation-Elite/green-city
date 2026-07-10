@@ -15,6 +15,8 @@ import {
   sendBrevoTransactionalEmail,
 } from "./brevo";
 import { normalizePhoneE164 } from "./phone";
+import { handleSendOtp, handleVerifyOtp, isPhoneVerified } from "./otp";
+import type { OtpOptions } from "./otp";
 
 const APPOINTMENT_TIMEZONE = "Europe/Paris";
 const APPOINTMENT_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
@@ -297,6 +299,7 @@ function fireRdvBrevoUpsert(params: {
   firstName: string;
   lastName: string;
   phone: string;
+  phoneVerified: boolean;
   programmeCategoryValue?: number;
   appointmentDate: Date;
   appointmentTime: string;
@@ -314,6 +317,9 @@ function fireRdvBrevoUpsert(params: {
       phone: params.phone,
       attributes: {
         TEMPERATURE: "HOT",
+        // Server-side knowledge from the OTP verified registry — describes
+        // the phone stored by this upsert.
+        TELEPHONE_VERIFIE: params.phoneVerified,
         RDV_DATE: params.appointmentDate.toISOString(),
         RDV_TIME: params.appointmentTime,
         ...(params.programmeCategoryValue !== undefined
@@ -362,6 +368,7 @@ function fireAllLeadsBrevoUpsert(params: {
   firstName: string;
   lastName: string;
   phone: string;
+  phoneVerified: boolean;
   temperature: LeadTemperature;
   listId: number;
   objectif?: "HABITER" | "INVESTIR";
@@ -380,6 +387,9 @@ function fireAllLeadsBrevoUpsert(params: {
       phone: params.phone,
       attributes: {
         TEMPERATURE: params.temperature,
+        // Server-side knowledge from the OTP verified registry — describes
+        // the phone stored by this upsert.
+        TELEPHONE_VERIFIE: params.phoneVerified,
         ...(params.objectif !== undefined ? { OBJECTIF: params.objectif } : {}),
         ...(horizonAchat !== undefined ? { HORIZON_ACHAT: horizonAchat } : {}),
         ...(params.financingValidation !== undefined
@@ -427,6 +437,7 @@ function fireNurturingBrevoUpsert(params: {
   firstName: string;
   lastName: string;
   phone: string;
+  phoneVerified: boolean;
   nurturingListId?: number;
   objectif?: "HABITER" | "INVESTIR";
   purchaseTime?: "IMMEDIAT" | "6_MOIS" | "INDEFINI";
@@ -456,6 +467,9 @@ function fireNurturingBrevoUpsert(params: {
       phone: params.phone,
       attributes: {
         TEMPERATURE: "COLD",
+        // Server-side knowledge from the OTP verified registry — describes
+        // the phone stored by this upsert.
+        TELEPHONE_VERIFIE: params.phoneVerified,
         ...(params.objectif !== undefined ? { OBJECTIF: params.objectif } : {}),
         ...(horizonAchat !== undefined ? { HORIZON_ACHAT: horizonAchat } : {}),
         ...(params.financingValidation !== undefined
@@ -491,6 +505,18 @@ function fireNurturingBrevoUpsert(params: {
         }),
       );
     });
+}
+
+// The GreenCity ERP has no lead-update endpoint and no verified-phone field,
+// so the OTP outcome is stamped into the comment at creation time — the only
+// surface the sales team sees.
+function buildLeadComment(
+  message: string | undefined,
+  phoneVerified: boolean,
+): string | undefined {
+  const tag = phoneVerified ? "Téléphone vérifié par SMS." : undefined;
+  const parts = [message, tag].filter(Boolean);
+  return parts.length > 0 ? parts.join("\n\n") : undefined;
 }
 
 export function createLeadHandler(options: LeadHandlerOptions = {}) {
@@ -548,6 +574,16 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
         ? new Date(appointmentDate).toISOString()
         : undefined;
 
+      // The form flow verifies the phone (OTP) BEFORE posting the lead, so a
+      // registry miss means a caller that bypassed the UI (bot, direct API) —
+      // the lead is still accepted, just not stamped as verified.
+      const phoneVerified = isPhoneVerified(normalizedPhone);
+      if (!phoneVerified) {
+        console.warn(
+          JSON.stringify({ event: "lead.phone_unverified", email }),
+        );
+      }
+
       const greenCityPayload: GreenCityLeadPayload = {
         firstName: prenom || nom.split(" ")[0] || nom,
         lastName: nom,
@@ -557,7 +593,7 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
         purchaseTime: mapPurchaseTime(purchaseTime),
         financingValidation: mapFinancingValidation(financingValidation),
         appointmentDate: normalizedAppointmentDate,
-        comment: message || undefined,
+        comment: buildLeadComment(message, phoneVerified),
         residences,
         temperature,
       };
@@ -571,6 +607,7 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
           firstName: prenom || nom.split(" ")[0] || nom,
           lastName: nom,
           phone: telephone,
+          phoneVerified,
           temperature,
           listId: allLeadsListId,
           objectif,
@@ -587,6 +624,7 @@ export function createLeadHandler(options: LeadHandlerOptions = {}) {
           firstName: prenom || nom.split(" ")[0] || nom,
           lastName: nom,
           phone: telephone,
+          phoneVerified,
           nurturingListId: options.nurturingListId,
           objectif,
           purchaseTime,
@@ -686,6 +724,18 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
         defaultResidenceName: options.defaultResidenceName,
       });
 
+      // Same OTP-before-lead flow as leadHandler: a registry miss means the
+      // UI was bypassed; the RDV is still accepted, just not stamped.
+      const phoneVerified = isPhoneVerified(normalizedPhone);
+      if (!phoneVerified) {
+        console.warn(
+          JSON.stringify({
+            event: "rdv.phone_unverified",
+            email: contact.email,
+          }),
+        );
+      }
+
       const greenCityPayload: GreenCityLeadPayload = {
         firstName:
           contact.firstName || contact.name.split(" ")[0] || contact.name,
@@ -693,7 +743,7 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
         email: contact.email,
         phoneMobile: normalizedPhone,
         appointmentDate: formattedDate,
-        comment: message || undefined,
+        comment: buildLeadComment(message, phoneVerified),
         residences,
         temperature: "HOT",
       };
@@ -712,6 +762,7 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
             contact.firstName || contact.name.split(" ")[0] || contact.name,
           lastName: contact.name,
           phone: contact.phone,
+          phoneVerified,
           programmeCategoryValue: options.rdvProgrammeCategoryValue,
           appointmentDate: dateValue,
           appointmentTime: appointmentTime,
@@ -788,3 +839,72 @@ export function createRdvHandler(options: RdvHandlerOptions = {}) {
 }
 
 export const rdvHandler = createRdvHandler();
+
+// ────────────────────────────────────────────
+// Phone verification (SMS OTP via Twilio Verify)
+// ────────────────────────────────────────────
+// Same timing as mon-meilleur-bien: the client verifies the phone FIRST
+// (send-otp → verify-otp) and only then POSTs the lead. A prospect who never
+// validates the code is never sent to GreenCity/Brevo. The verified registry
+// filled by verify-otp lets leadHandler/rdvHandler stamp the lead server-side.
+
+export type OtpHandlerOptions = Pick<
+  OtpOptions,
+  "acceptCountries" | "testNumbers"
+>;
+
+function getClientIp(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+export function createSendOtpHandler(options: OtpHandlerOptions = {}) {
+  return async function sendOtpHandler(request: NextRequest) {
+    try {
+      const body = await request.json();
+      const result = await handleSendOtp(body, {
+        ...options,
+        ip: getClientIp(request),
+      });
+      return NextResponse.json(result.body, {
+        status: result.status,
+        headers: result.headers,
+      });
+    } catch (error) {
+      console.error("Error in send-otp:", error);
+      return NextResponse.json(
+        { error: "Une erreur est survenue. Veuillez réessayer." },
+        { status: 500 },
+      );
+    }
+  };
+}
+
+export function createVerifyOtpHandler(options: OtpHandlerOptions = {}) {
+  return async function verifyOtpHandler(request: NextRequest) {
+    try {
+      const body = await request.json();
+      // On success, handleVerifyOtp records the phone in the verified
+      // registry; the subsequent /api/lead or /api/rdv POST reads it to stamp
+      // the lead (GreenCity comment + Brevo TELEPHONE_VERIFIE).
+      const result = await handleVerifyOtp(body, {
+        ...options,
+        ip: getClientIp(request),
+      });
+
+      return NextResponse.json(result.body, {
+        status: result.status,
+        headers: result.headers,
+      });
+    } catch (error) {
+      console.error("Error in verify-otp:", error);
+      return NextResponse.json(
+        { error: "Une erreur est survenue." },
+        { status: 500 },
+      );
+    }
+  };
+}

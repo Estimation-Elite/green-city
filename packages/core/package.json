@@ -40,6 +40,10 @@
       "types": "./src/analytics/trackCallbackScheduled.ts",
       "default": "./src/analytics/trackCallbackScheduled.ts"
     },
+    "./analytics/trackPhoneVerified": {
+      "types": "./src/analytics/trackPhoneVerified.ts",
+      "default": "./src/analytics/trackPhoneVerified.ts"
+    },
     "./greencity-api": {
       "types": "./src/greencity-api.ts",
       "default": "./src/greencity-api.ts"
@@ -47,6 +51,8 @@
   },
   "dependencies": {
     "date-fns-tz": "^3.2.0",
+    "libphonenumber-js": "^1.12.31",
+    "twilio": "^5.10.7",
     "uuid": "^11.0.3"
   },
   "devDependencies": {

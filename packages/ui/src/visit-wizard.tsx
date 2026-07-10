@@ -6,11 +6,14 @@ import { Input } from "./input";
 import { CustomCalendar } from "./custom-calendar";
 import { ArrowLeft, Mail, Phone, Loader2 } from "lucide-react";
 import { useUtmParams } from "./hooks/useUtmParams";
+import { usePhoneOtp } from "./hooks/usePhoneOtp";
+import { OtpVerificationStep } from "./otp-verification-step";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { fr } from "date-fns/locale";
 import { format } from "date-fns";
 import { trackVisitScheduled } from "@repo/core/analytics/trackVisitScheduled";
+import { trackPhoneVerified } from "@repo/core/analytics/trackPhoneVerified";
 
 export interface VisitFormData {
   contact: {
@@ -83,6 +86,30 @@ export function VisitWizard({
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Runs only AFTER the phone has been verified by SMS (usePhoneOtp calls it
+  // as onVerified). Throws on failure so the hook can toast + offer a retry.
+  const submitVisit = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const leadId = await createVisit(
+        formData,
+        projectAddress,
+        utmParams.utm_source,
+      );
+      toast.success("Rendez-vous enregistré !");
+      if (leadId) {
+        trackVisitScheduled(leadId);
+        trackPhoneVerified(leadId);
+      }
+      setStep(TOTAL_STEPS);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const otp = usePhoneOtp({ onVerified: submitVisit });
+
   useEffect(() => {
     if (step === TOTAL_STEPS && !hasSubmitted) {
       setHasSubmitted(true);
@@ -123,30 +150,11 @@ export function VisitWizard({
     );
   };
 
+  // MMB timing: the confirm button triggers the SMS verification; the RDV is
+  // only created (submitVisit) once the code is validated. A send failure
+  // (invalid number, landline...) is toasted by the hook and returns here.
   const handleCreateVisit = async () => {
-    if (submitting) return;
-    setSubmitting(true);
-    try {
-      const leadId = await createVisit(
-        formData,
-        projectAddress,
-        utmParams.utm_source,
-      );
-      toast.success("Rendez-vous enregistré !");
-      if (leadId) {
-        trackVisitScheduled(leadId);
-      }
-      setStep(TOTAL_STEPS);
-    } catch (error) {
-      console.error("Error creating visit:", error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Erreur lors de la création du rendez-vous.";
-      toast.error(message);
-    } finally {
-      setSubmitting(false);
-    }
+    await otp.start({ phone: formData.contact.phone.trim() });
   };
 
   const renderStep_Date = () => (
@@ -406,6 +414,18 @@ export function VisitWizard({
         return null;
     }
   };
+
+  // OTP step replaces the wizard while verification is pending; once the RDV
+  // is created, submitVisit moves to the confirmation step which takes over.
+  if (otp.stepVisible && step < TOTAL_STEPS) {
+    return (
+      <div className="w-full">
+        <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden p-8">
+          <OtpVerificationStep phone={formData.contact.phone} otp={otp} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">

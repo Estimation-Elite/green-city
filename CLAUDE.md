@@ -55,6 +55,7 @@ Each app (`home-spirit-2`, `l-archipel`, `park-view`, `revelation`) is a Next.js
 - **Data-driven content**: Each app defines all its content in `src/data/<project-name>.ts` (text, images, nav links, config). Section components import from this file.
 - **Theming**: Each app has its own color scheme defined as CSS custom properties in `globals.css`, consumed by Tailwind utilities.
 - **API integration**: Lead/RDV form submissions are sent to the GreenCity ERP API via `GREENCITY_API_URL`, `GREENCITY_API_KEY`, and `GREENCITY_API_SECRET` env vars.
+- **Phone verification (OTP)**: Same timing as mon-meilleur-bien — verification **gates** lead creation. Submitting a form triggers `/api/send-otp` (strict `libphonenumber-js/max` validation: FR mobiles only); the lead/RDV is only POSTed once `/api/verify-otp` validates the 6-digit code (`usePhoneOtp`'s `onVerified` callback runs the form's `submitLead`). A prospect who never validates the code is never sent to GreenCity/Brevo. On success, verify-otp records the phone in an in-memory **verified registry** (globalThis, 15 min TTL); `leadHandler`/`rdvHandler` read it to stamp the lead server-side: "Téléphone vérifié par SMS." appended to the GreenCity `comment` (the ERP is create-only, no dedicated field) and `TELEPHONE_VERIFIE: true` on the Brevo contact. A registry miss (UI bypassed) still creates the lead, unstamped, with a `lead.phone_unverified` warn log. `phone.ts` (`normalizePhoneE164`) stays loose in the handlers as a payload safety net. Test number `+33612345678` bypasses Twilio in every environment (any 6-digit code accepted, registry included) — it is the way to walk the full flow locally; real numbers always go through Twilio.
 - **New project creation**: Copy an existing app, update `package.json` name, Dockerfile filter, data file, and `globals.css` colors.
 
 ## Tech Stack
@@ -70,3 +71,12 @@ Each app (`home-spirit-2`, `l-archipel`, `park-view`, `revelation`) is a Next.js
 - `GREENCITY_API_URL` - GreenCity ERP API base URL (defaults to `https://greencity.erp.iwit.pro`)
 - `GREENCITY_API_KEY` - GreenCity API key
 - `GREENCITY_API_SECRET` - GreenCity API secret
+- `GREENCITY_RESIDENCE_NAME` - Residence name used to resolve the GreenCity residence id (overrides the handler's `defaultResidenceName`)
+- `BREVO_API_KEY` - Brevo API key (contact upserts, transactional emails, verified-phone flag)
+- `BREVO_ALL_LEADS_LIST_ID` - Brevo "Tous leads" registry list id
+- `BREVO_NURTURING_LIST_ID` - Brevo nurturing list id (COLD leads)
+- `BREVO_TEMPLATE_ID_LEAD_ACKNOWLEDGMENT` - Brevo template id for the brochure acknowledgment email
+- `BREVO_TEMPLATE_ID_RDV_CONFIRMATION` - Brevo template id for the RDV confirmation email
+- `TWILIO_ACCOUNT_SID` - Twilio account SID (phone verification)
+- `TWILIO_AUTH_TOKEN` - Twilio auth token
+- `TWILIO_VERIFY_SERVICE_SID` - Twilio Verify service SID. Use a **dedicated GreenCity service** (its friendly name appears in the SMS text — sharing MonMeilleurBien's service would brand the SMS wrong); one service is shared across the 4 apps.

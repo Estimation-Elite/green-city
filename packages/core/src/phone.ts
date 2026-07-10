@@ -1,6 +1,10 @@
 // Normalize a phone number to E.164. French numbers (10 digits starting
 // with 0) become +33XXXXXXXXX. Anything we can't confidently normalize
 // returns null so callers can surface a validation error.
+//
+// Intentionally loose (lead capture must never lose a lead over a borderline
+// number). The SMS OTP path uses the stricter libphonenumber-based
+// parsePhoneToE164 in otp.ts instead — an SMS send costs money.
 export function normalizePhoneE164(phone: string): string | null {
   const digits = phone.replace(/\D/g, "");
   if (digits.startsWith("33") && digits.length === 11) return `+${digits}`;

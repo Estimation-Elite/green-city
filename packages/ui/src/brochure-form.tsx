@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Download, Loader2, Check, Mail, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
 import { Input } from "./input";
 import { Button } from "./button";
 import { useUtmParams } from "./hooks/useUtmParams";
+import { usePhoneOtp } from "./hooks/usePhoneOtp";
+import { OtpVerificationStep } from "./otp-verification-step";
 import { trackLeadSubmitted } from "@repo/core/analytics/trackLeadSubmitted";
 import { trackBrochureDownloaded } from "@repo/core/analytics/trackBrochureDownloaded";
+import { trackPhoneVerified } from "@repo/core/analytics/trackPhoneVerified";
 
 // ────────────────────────────────────────────
 // Types
@@ -81,6 +83,54 @@ function BrochureForm({
     financingValidation: null,
   });
 
+  // Snapshot of the data at auto-submit time (the last step submits from a
+  // local `updated` object, not from the async form state).
+  const pendingDataRef = useRef<BrochureFormData | null>(null);
+
+  // Runs only AFTER the phone has been verified by SMS (usePhoneOtp calls it
+  // as onVerified). Throws on failure so the hook can toast + offer a retry.
+  const submitLead = async () => {
+    const data = pendingDataRef.current;
+    if (!data || submitting) return;
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prenom: data.prenom.trim(),
+          nom: data.nom.trim(),
+          email: data.email.trim(),
+          telephone: data.telephone.trim(),
+          objectif: data.objectif,
+          purchaseTime: data.purchaseTime,
+          financingValidation: data.financingValidation,
+          formType: "brochure",
+          utmSource: utmParams.utm_source,
+          residenceRef,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Erreur lors de l'envoi.");
+      }
+
+      if (result.leadId) {
+        trackLeadSubmitted(result.leadId);
+        trackPhoneVerified(result.leadId);
+      }
+
+      setSubmitted(true);
+      onSuccess?.();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const otp = usePhoneOtp({ onVerified: submitLead });
+
   const handleNext = () => {
     if (step < TOTAL_STEPS) setStep(step + 1);
   };
@@ -128,48 +178,12 @@ function BrochureForm({
     }
   };
 
+  // MMB timing: the last wizard step triggers the SMS verification; the lead
+  // is only posted (submitLead) once the code is validated. A send failure
+  // (invalid number, landline...) is toasted by the hook and returns here.
   const handleSubmitWithData = async (data: BrochureFormData) => {
-    if (submitting) return;
-    setSubmitting(true);
-
-    try {
-      const form = {
-        prenom: data.prenom.trim(),
-        nom: data.nom.trim(),
-        email: data.email.trim(),
-        telephone: data.telephone.trim(),
-        objectif: data.objectif,
-        purchaseTime: data.purchaseTime,
-        financingValidation: data.financingValidation,
-        formType: "brochure",
-        utmSource: utmParams.utm_source,
-        residenceRef,
-      }
-
-      const response = await fetch("/api/lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Erreur lors de l'envoi.");
-      }
-
-      if (result.leadId) {
-        trackLeadSubmitted(result.leadId);
-      }
-
-      setSubmitted(true);
-      onSuccess?.();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Erreur inattendue.";
-      toast.error(message);
-    } finally {
-      setSubmitting(false);
-    }
+    pendingDataRef.current = data;
+    await otp.start({ phone: data.telephone.trim() });
   };
 
   const triggerPdfDownload = () => {
@@ -205,6 +219,15 @@ function BrochureForm({
           <Download className="w-5 h-5 mr-2" />
           Télécharger la brochure
         </Button>
+      </div>
+    );
+  }
+
+  // ── OTP step (phone verification gates the lead submission) ──
+  if (otp.stepVisible) {
+    return (
+      <div className={`py-8 ${className}`}>
+        <OtpVerificationStep phone={form.telephone} otp={otp} />
       </div>
     );
   }

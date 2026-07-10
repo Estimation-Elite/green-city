@@ -19,6 +19,12 @@ export { Header } from "./header";
 export { Footer } from "./footer";
 
 // Shared UI components
+export { OtpVerificationStep } from "./otp-verification-step";
+export {
+  usePhoneOtp,
+  type PhoneOtp,
+  type PhoneOtpStatus,
+} from "./hooks/usePhoneOtp";
 export { LiveViewerCount } from "./live-viewer-count";
 export { LotsAvailableBadge } from "./lots-available-badge";
 export { BrochureForm } from "./brochure-form";

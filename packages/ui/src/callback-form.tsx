@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Loader2, Check, Calendar, Clock, Mail, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Input } from "./input";
@@ -11,8 +10,11 @@ import { Textarea } from "./textarea";
 import { Button } from "./button";
 import { CustomCalendar } from "./custom-calendar";
 import { useUtmParams } from "./hooks/useUtmParams";
+import { usePhoneOtp } from "./hooks/usePhoneOtp";
+import { OtpVerificationStep } from "./otp-verification-step";
 import { trackLeadSubmitted } from "@repo/core/analytics/trackLeadSubmitted";
 import { trackCallbackScheduled } from "@repo/core/analytics/trackCallbackScheduled";
+import { trackPhoneVerified } from "@repo/core/analytics/trackPhoneVerified";
 
 // ────────────────────────────────────────────
 // Types
@@ -74,37 +76,11 @@ function CallbackForm({
     message: "",
   });
 
-  const handleNext = () => {
-    if (step < TOTAL_STEPS) setStep(step + 1);
-  };
-
-  const handleBack = () => {
-    if (step > 1) setStep(step - 1);
-  };
-
-  const isIdentityValid = (): boolean => {
-    return (
-      form.prenom.trim().length > 1 &&
-      form.nom.trim().length > 1 &&
-      form.email.includes("@") &&
-      form.email.includes(".") &&
-      form.telephone.replace(/\s/g, "").length >= 10
-    );
-  };
-
-  const isStepValid = (): boolean => {
-    switch (step) {
-      case 1: return isIdentityValid();
-      case 2: return form.appointmentDate !== undefined && form.appointmentTime !== null;
-      case 3: return true; // Message is optional
-      default: return false;
-    }
-  };
-
-  const handleSubmit = async () => {
+  // Runs only AFTER the phone has been verified by SMS (usePhoneOtp calls it
+  // as onVerified). Throws on failure so the hook can toast + offer a retry.
+  const submitLead = async () => {
     if (submitting) return;
     setSubmitting(true);
-
     try {
       const response = await fetch("/api/rdv", {
         method: "POST",
@@ -133,16 +109,50 @@ function CallbackForm({
       if (result.leadId) {
         trackLeadSubmitted(result.leadId);
         trackCallbackScheduled(result.leadId);
+        trackPhoneVerified(result.leadId);
       }
 
       setSubmitted(true);
       onSuccess?.();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Erreur inattendue.";
-      toast.error(message);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const otp = usePhoneOtp({ onVerified: submitLead });
+
+  const handleNext = () => {
+    if (step < TOTAL_STEPS) setStep(step + 1);
+  };
+
+  const handleBack = () => {
+    if (step > 1) setStep(step - 1);
+  };
+
+  const isIdentityValid = (): boolean => {
+    return (
+      form.prenom.trim().length > 1 &&
+      form.nom.trim().length > 1 &&
+      form.email.includes("@") &&
+      form.email.includes(".") &&
+      form.telephone.replace(/\s/g, "").length >= 10
+    );
+  };
+
+  const isStepValid = (): boolean => {
+    switch (step) {
+      case 1: return isIdentityValid();
+      case 2: return form.appointmentDate !== undefined && form.appointmentTime !== null;
+      case 3: return true; // Message is optional
+      default: return false;
+    }
+  };
+
+  // MMB timing: the submit button triggers the SMS verification; the RDV is
+  // only posted (submitLead) once the code is validated. A send failure
+  // (invalid number, landline...) is toasted by the hook and returns here.
+  const handleSubmit = async () => {
+    await otp.start({ phone: form.telephone.trim() });
   };
 
   // ── Success screen ──
@@ -166,6 +176,15 @@ function CallbackForm({
             <strong className="text-foreground">{form.appointmentTime}</strong>.
           </p>
         </div>
+      </div>
+    );
+  }
+
+  // ── OTP step (phone verification gates the RDV submission) ──
+  if (otp.stepVisible) {
+    return (
+      <div className={`py-8 ${className}`}>
+        <OtpVerificationStep phone={form.telephone} otp={otp} />
       </div>
     );
   }

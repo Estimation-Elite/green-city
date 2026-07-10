@@ -130,12 +130,13 @@ export interface MarkContactResult {
   status: number;
 }
 
-// Set the RDV_PRIS boolean attribute on an existing Brevo contact. Used by
-// rdvHandler to trigger the workflow exit condition. Never creates a contact:
+// Update attributes on an existing Brevo contact. Never creates a contact:
 // a 404 (unknown email) is a normal, silent outcome.
-export async function markContactAsRdvPris(
+async function putContactAttributes(
   email: string,
+  attributes: Record<string, unknown>,
   apiKey: string,
+  logEvent: string,
 ): Promise<MarkContactResult> {
   const identifier = encodeURIComponent(email.trim().toLowerCase());
 
@@ -146,7 +147,7 @@ export async function markContactAsRdvPris(
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: JSON.stringify({ attributes: { RDV_PRIS: true } }),
+    body: JSON.stringify({ attributes }),
   });
 
   if (res.status === 404) {
@@ -155,10 +156,10 @@ export async function markContactAsRdvPris(
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    // TODO(Sentry): Sentry.captureMessage("brevo.rdv.update.failed", { level: "error", extra: { email, status: res.status, body } })
+    // TODO(Sentry): Sentry.captureMessage(`${logEvent}.failed`, { level: "error", extra: { email, status: res.status, body } })
     console.error(
       JSON.stringify({
-        event: "brevo.rdv.update.failed",
+        event: `${logEvent}.failed`,
         email,
         status: res.status,
         body,
@@ -168,6 +169,15 @@ export async function markContactAsRdvPris(
   }
 
   return { updated: true, status: res.status };
+}
+
+// Set the RDV_PRIS boolean attribute. Used by rdvHandler to trigger the
+// nurturing workflow exit condition.
+export async function markContactAsRdvPris(
+  email: string,
+  apiKey: string,
+): Promise<MarkContactResult> {
+  return putContactAttributes(email, { RDV_PRIS: true }, apiKey, "brevo.rdv.update");
 }
 
 export interface SendTransacEmailPayload {
