@@ -54,15 +54,26 @@ export async function pushLeadToGreenCity(
   lead: NormalizedLead,
   source: string,
 ): Promise<PushResult> {
+  // Tout rejet 400 est trace : sans log, un lead invalide disparait
+  // silencieusement (ni GreenCity, ni Brevo, ni Airtable) et on ne peut meme
+  // pas le rattraper a posteriori faute de savoir qui c'etait.
   if (!lead.email) {
+    logError("fb.lead.rejected", { source, reason: "email_manquant", phone: lead.phone });
     return { ok: false, status: 400, error: "email manquant" };
   }
   if (!lead.phone) {
+    logError("fb.lead.rejected", { source, reason: "telephone_manquant", email: lead.email });
     return { ok: false, status: 400, error: "telephone manquant" };
   }
 
   const phoneMobile = normalizePhoneE164(lead.phone);
   if (!phoneMobile) {
+    logError("fb.lead.rejected", {
+      source,
+      reason: "telephone_invalide",
+      email: lead.email,
+      phone: lead.phone,
+    });
     return {
       ok: false,
       status: 400,
